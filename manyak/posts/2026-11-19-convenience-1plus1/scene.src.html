@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>만약에 EP02 편의점 1+1</title>
+<style>
+  html,body{margin:0;padding:0;background:#000;}
+  #stage{position:relative;width:540px;height:960px;overflow:hidden;font-family:'Noto Sans CJK KR','Noto Sans KR',sans-serif;font-weight:900;}
+  canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
+  #fx{position:absolute;inset:0;pointer-events:none;}
+  .safe{position:absolute;left:20px;width:405px;text-align:center;}
+  #badge{top:116px;}
+  #badge span{display:inline-block;border:2.5px solid #fff;border-radius:10px;padding:2px 10px 3px;font-size:15px;color:#fff;background:rgba(255,107,129,.92);letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+  #title{top:146px;font-size:31px;line-height:1.18;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.55);-webkit-text-stroke:1.5px rgba(0,0,0,.6);paint-order:stroke fill;}
+  #title .y{color:#ffe14d;}
+  #counter{position:absolute;left:20px;top:506px;background:rgba(0,0,0,.28);border-radius:14px;padding:4px 10px 6px;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.6);transform-origin:left center;}
+  #counter .lab{font-size:17px;display:inline-block;background:rgba(0,0,0,.55);padding:2px 9px;border-radius:8px;}
+  #counter .num{font-size:58px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
+  #counter .num small{font-size:30px;margin-left:4px;}
+  #counter .sub{font-size:15px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
+  #pop{position:absolute;font-size:46px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
+  #sub{top:640px;font-size:29px;line-height:1.25;color:#fff;-webkit-text-stroke:6px #000;paint-order:stroke fill;word-break:keep-all;}
+  #sub .q{color:#ffe14d;}
+  #flash{position:absolute;inset:0;background:#fff;opacity:0;}
+  #rew{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 3px,rgba(0,0,0,0) 3px 9px);}
+  #end{position:absolute;left:28px;width:389px;top:318px;opacity:0;text-align:center;color:#fff;}
+  #end .card{background:rgba(20,20,28,.78);border:3px solid #fff;border-radius:26px;padding:22px 14px 20px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
+  #end .ep{display:inline-block;font-size:38px;border:3px solid #fff;border-radius:14px;padding:2px 16px 6px;background:#ff6b81;}
+  #end .share{font-size:27px;line-height:1.3;margin-top:16px;color:#ffe14d;word-break:keep-all;}
+  #end .next{font-size:16px;margin-top:14px;color:#ddd;font-weight:700;}
+</style></head>
+<body><div id="stage">
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="fx"><div id="rew"></div></div>
+<div id="badge" class="safe"><span>만약에 EP02</span></div>
+<div id="title" class="safe">만약 편의점 <span class="y">1+1</span>이<br>멈추지 않는다면?</div>
+<div id="counter"><div class="lab">삼각김밥</div><div class="num">2<small>개</small></div><div class="sub">2배씩 늘어나는 중</div></div>
+<div id="pop"></div>
+<div id="sub" class="safe"></div>
+<div id="end"><div class="card"><div class="ep">만약에 EP02</div><div class="share">1+1 보면 무조건 사는<br>친구한테 보내기</div><div class="next">다음 만약에는 내일 저녁 7시</div></div></div>
+<div id="flash"></div>
+</div>
+<script src="../../engine/engine.js"></script>
+<script>
+'use strict';
+const { M4, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter } = ME;
+const E = MiniEngine(document.getElementById('c'));
+const m = E.meshes, D = E.draw;
+const DURATION = 19.9;
+const FONT = "'Noto Sans CJK KR','Noto Sans KR',sans-serif";
+
+// ---------------- textures ----------------
+const TX = {
+  sticker: E.texture((c, w, h) => {
+    c.fillStyle = '#ffd400'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#e8401c'; c.lineWidth = 16; c.beginPath(); c.arc(w / 2, h / 2, w / 2 - 14, 0, 7); c.stroke();
+    c.fillStyle = '#d42a12'; c.font = `900 108px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('1+1', w / 2, h / 2 + 6);
+  }, 256, 256),
+  sign: E.texture((c, w, h) => {
+    c.fillStyle = '#14a37f'; c.fillRect(0, 0, w, h); c.fillStyle = '#ffffff'; c.fillRect(0, h - 18, w, 8);
+    c.font = `900 120px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('편의점', w / 2, h / 2 - 6);
+  }, 512, 256),
+  banner: E.texture((c, w, h) => {
+    c.fillStyle = '#ffd400'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#d42a12'; c.font = `900 150px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('1+1 행사', w / 2, h / 2 + 8);
+  }, 512, 256),
+  strip: E.texture((c, w, h) => {
+    c.fillStyle = '#ffd400'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#d42a12'; c.font = `900 44px ${FONT}`; c.textBaseline = 'middle';
+    for (let x = 10; x < w; x += 128) c.fillText('1+1', x, h / 2 + 3);
+  }, 512, 64, true),
+  apt: E.texture((c, w, h) => {
+    c.fillStyle = '#efe9df'; c.fillRect(0, 0, w, h);
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 4; x++) {
+      c.fillStyle = '#7da3c4'; c.fillRect(x * 64 + 10, y * 64 + 14, 44, 30);
+      c.fillStyle = '#d9d2c5'; c.fillRect(x * 64 + 6, y * 64 + 46, 52, 8);
+    }
+  }, 256, 512, true),
+  pile: E.texture((c, w, h) => {
+    c.fillStyle = '#e9e6dc'; c.fillRect(0, 0, w, h);
+    const R = rng(9);
+    for (let i = 0; i < 260; i++) {
+      const x = R() * w, y = R() * h, s = 22 + R() * 16, a = (R() - 0.5) * 1.2;
+      c.save(); c.translate(x, y); c.rotate(a);
+      c.fillStyle = '#fbfaf4'; c.strokeStyle = '#c9c4b6'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(0, -s); c.lineTo(-s * 1.05, s * 0.75); c.lineTo(s * 1.05, s * 0.75); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#1f2a24'; c.fillRect(-s * 0.42, s * 0.05, s * 0.84, s * 0.7);
+      if (R() < 0.35) { c.fillStyle = '#ffd400'; c.beginPath(); c.arc(s * 0.2, -s * 0.2, s * 0.22, 0, 7); c.fill(); }
+      c.restore();
+    }
+  }, 512, 512, true),
+  road: E.texture((c, w, h) => {
+    c.fillStyle = '#4b4f58'; c.fillRect(0, 0, w, h);
+    const R = rng(4); for (let i = 0; i < 900; i++) { c.fillStyle = R() < 0.5 ? '#454951' : '#525660'; c.fillRect(R() * w, R() * h, 3, 3); }
+  }, 256, 256, true),
+};
+
+// ---------------- props ----------------
+function kimbap(mat, o) {
+  o = o || {};
+  D(m.prism, mat, o.glow ? [1, 1, 0.92] : '#fbfaf3', { spec: 0.9, em: o.glow ? o.glow * 0.5 : 0 });
+  D(m.box, M4.chain(mat, M4.T(0, -0.15, 0), M4.S(0.42, 0.45, 0.41)), '#1f2a24', { spec: 0.5 });
+  if (o.sticker !== false) D(m.disc, M4.chain(mat, M4.T(0.0, 0.17, 0.212), M4.S(0.27 * (o.stickerScale || 1))), [1, 1, 1], { tex: TX.sticker, em: 0.25 + (o.glow || 0) * 0.7, spec: 0.3 });
+}
+function bag(mat, o) {
+  o = o || {};
+  D(m.box, M4.chain(mat, M4.S(0.5, 0.56, 0.2)), '#f3f6f8', { spec: 0.8 });
+  D(m.box, M4.chain(mat, M4.T(-0.13, 0.36, 0), M4.S(0.05, 0.18, 0.04)), '#e4e9ee');
+  D(m.box, M4.chain(mat, M4.T(0.13, 0.36, 0), M4.S(0.05, 0.18, 0.04)), '#e4e9ee');
+  D(m.box, M4.chain(mat, M4.T(0, 0.45, 0), M4.S(0.31, 0.05, 0.04)), '#e4e9ee');
+  D(m.disc, M4.chain(mat, M4.T(0, -0.02, 0.105), M4.S(0.3 * (o.stickerScale || 1))), [1, 1, 1], { tex: TX.sticker, em: 0.3 + (o.glow || 0) * 0.6, spec: 0.3 });
+}
+function shadow(x, y, z, r, a) { D(m.disc, M4.chain(M4.T(x, y + 0.01, z), M4.RX(-Math.PI / 2), M4.S(r)), [0, 0, 0], { alpha: a === undefined ? 0.25 : a, spec: 0, em: 1 }); }
+
+// ---------------- timeline helpers ----------------
+function geo(a, b, u) { return a * Math.pow(b / a, clamp(u, 0, 1)); }
+function ease(u) { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); }
+function pileH(t) {
+  if (t < 4.75) return 0;
+  if (t < 6.1) return geo(0.35, 2.5, ease((t - 4.75) / 1.25));
+  if (t < 8.6) return geo(3.4, 9, (t - 6.1) / 2.5);
+  if (t < 11.0) return geo(9, 38, ease((t - 8.6) / 2.4));
+  if (t < 12.6) return geo(38, 120, ease((t - 11.0) / 1.5));
+  return 120;
+}
+const DOOR = [-1.8, 0, 3.0];
+function coldST(t) { if (t >= 0.8) return t; return t < 0.55 ? 6.45 + t * 0.3 : lerp(6.62, 6.12, smooth(0.55, 0.8, t)); }
+function pileCenter(t) {
+  if (t < 6.1) return [0.6, 0, -0.9];
+  const u = ease((t - 6.1) / 3.0);
+  return [lerp(DOOR[0], 0, u), 0, lerp(DOOR[2] + 0.6, -1, u)];
+}
+const PK = (t) => (t < 6.1 ? 1.0 : 1.35);
+const EXP_KEYS = [[0.8, 1], [1.95, 1], [2.0, 2], [3.0, 2], [3.05, 3], [4.5, 6], [4.8, 7], [5.2, 10], [6.2, 10], [8.0, 20], [8.6, 20], [10.4, 30], [11.0, 30], [12.2, 40], [13.9, 40], [14.0, 41], [15.5, 41], [15.6, 42]];
+function expAt(t) {
+  if (t < 0.8) return 20;
+  let e = EXP_KEYS[0][1];
+  for (let i = 0; i < EXP_KEYS.length - 1; i++) { const [a, ea] = EXP_KEYS[i], [b, eb] = EXP_KEYS[i + 1]; if (t >= a && t <= b) e = lerp(ea, eb, (t - a) / (b - a)); if (t > b) e = eb; }
+  return Math.floor(e + 1e-6);
+}
+
+// ---------------- world ----------------
+const R0 = rng(31);
+const SHELF_PRODUCTS = [];
+for (let i = 0; i < 90; i++) SHELF_PRODUCTS.push({ c: ['#ff5d5d', '#3d7bff', '#2fbf71', '#ff9f1c', '#b46cff', '#ffd23f', '#ff7ab6', '#20c4d4'][Math.floor(R0() * 8)], h: 0.18 + R0() * 0.16, w: 0.16 + R0() * 0.1 });
+const PILE_KB = []; { const R = rng(55); for (let i = 0; i < 140; i++) PILE_KB.push({ a: R() * Math.PI * 2, r: Math.sqrt(R()), yaw: R() * 6.28, tilt: (R() - 0.5) * 1.2, s: 0.8 + R() * 0.5 }); }
+const CLOUDS = []; { const R = rng(12); for (let i = 0; i < 26; i++) { const a = R() * 6.28, r = 70 + R() * 200; CLOUDS.push({ x: Math.sin(a) * r, y: 58 + R() * 34, z: Math.cos(a) * r * 0.8 - 60, s: 9 + R() * 12 }); } }
+const APTS = []; { for (let i = 0; i < 9; i++) APTS.push({ x: -44 + i * 11, z: -24 - (i % 2) * 9, h: 24 + (i * 7 % 5) * 3, w: 8, d: 6 }); APTS.push({ x: -30, z: -6, h: 22, w: 7, d: 8 }); APTS.push({ x: 30, z: -8, h: 26, w: 7, d: 8 }); }
+
+function drawStore(t, H, C, k) {
+  const pileR = H * k;
+  const near = (x, z) => H > 0 && Math.hypot(x - C[0], z - C[2]) < pileR * 0.9;
+  // floor, walls, ceiling
+  D(m.box, M4.chain(M4.T(0, -0.05, -0.5), M4.S(8.4, 0.1, 7.2)), '#dfe3e8', { spec: 0.6 });
+  for (let i = 0; i < 8; i++) D(m.box, M4.chain(M4.T(-3.5 + i, 0.002, -0.5), M4.S(0.02, 0.01, 7.2)), '#c6ccd4', { spec: 0 });
+  D(m.box, M4.chain(M4.T(0, 1.6, -4.05), M4.S(8.4, 3.2, 0.1)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(-4.15, 1.6, -0.5), M4.S(0.1, 3.2, 7.2)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(4.15, 1.6, -0.5), M4.S(0.1, 3.2, 7.2)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(0, 3.25, -0.5), M4.S(8.4, 0.1, 7.2)), '#ffffff', { em: 0.3 });
+  for (const z of [-2.6, -0.6, 1.4]) D(m.box, M4.chain(M4.T(0, 3.18, z), M4.S(5, 0.04, 0.25)), '#ffffff', { em: 1 });
+  // back fridge
+  for (let i = 0; i < 5; i++) {
+    const x = -3.4 + i * 1.0;
+    D(m.box, M4.chain(M4.T(x, 1.15, -3.85), M4.S(0.95, 2.3, 0.3)), '#cfd6de');
+    for (let j = 0; j < 4; j++) for (let q = 0; q < 4; q++) D(m.cyl, M4.chain(M4.T(x - 0.3 + q * 0.2, 0.45 + j * 0.5, -3.75), M4.S(0.12, 0.3, 0.12)), ['#5ec8ff', '#ff6b6b', '#7be07b', '#ffcf4a'][(i + j + q) % 4], { spec: 0.9 });
+    D(m.box, M4.chain(M4.T(x, 1.15, -3.68), M4.S(0.9, 2.2, 0.04)), '#bfe6ff', { alpha: 0.28, spec: 1 });
+  }
+  // banner behind counter
+  D(m.quad, M4.chain(M4.T(1.4, 2.55, -3.62), M4.S(1.8, 0.9, 1)), [1, 1, 1], { tex: TX.banner, em: 0.4 });
+  // shelves (left wall + island) fall when the pile reaches them
+  const shelves = [[-3.5, -1.8, Math.PI / 2], [-3.5, 0.6, Math.PI / 2], [-1.6, -1.2, 0], [-1.6, 1.0, 0]];
+  shelves.forEach(([x, z, ry], si) => {
+    const d = Math.hypot(x - C[0], z - C[2]);
+    const fall = H > 0 ? smooth(d + 0.4, d - 0.6, pileR) : 0;
+    const base = M4.chain(M4.T(x, 0, z), M4.RY(ry), M4.RZ(-fall * 1.25 * (si % 2 ? 1 : -1)));
+    D(m.box, M4.chain(base, M4.T(0, 0.9, 0), M4.S(1.9, 1.8, 0.1)), '#b9c1cb');
+    for (let lv = 0; lv < 4; lv++) {
+      D(m.box, M4.chain(base, M4.T(0, 0.12 + lv * 0.48, 0.2), M4.S(1.9, 0.05, 0.4)), '#d7dde4');
+      D(m.box, M4.chain(base, M4.T(0, 0.16 + lv * 0.48, 0.41), M4.S(1.9, 0.07, 0.01)), [1, 1, 1], { tex: TX.strip, tr: [2, 1], em: 0.3 });
+      for (let p = 0; p < 7; p++) { const P = SHELF_PRODUCTS[(si * 28 + lv * 7 + p) % 90]; D(m.box, M4.chain(base, M4.T(-0.75 + p * 0.25, 0.15 + lv * 0.48 + P.h / 2, 0.2), M4.S(P.w, P.h, 0.25)), P.c, { spec: 0.6 }); }
+    }
+  });
+  // counter
+  D(m.box, M4.chain(M4.T(1.3, 0.5, -2.0), M4.S(2.6, 1.0, 0.75)), '#ece6dc');
+  D(m.box, M4.chain(M4.T(1.3, 1.02, -2.0), M4.S(2.7, 0.05, 0.85)), '#6b5446', { spec: 0.7 });
+  D(m.box, M4.chain(M4.T(1.3, 0.55, -1.61), M4.S(2.5, 0.12, 0.02)), [1, 1, 1], { tex: TX.strip, tr: [3, 1], em: 0.3 });
+  D(m.box, M4.chain(M4.T(2.25, 1.22, -2.15), M4.S(0.45, 0.35, 0.35)), '#2e3440');
+  D(m.box, M4.chain(M4.T(2.25, 1.43, -2.05), M4.RX(-0.4), M4.S(0.4, 0.04, 0.3)), '#4ad0ff', { em: 0.6 });
+  // front wall with door & windows (z=3)
+  const glassA = 0.22;
+  D(m.box, M4.chain(M4.T(-3.4, 1.6, 3.0), M4.S(1.5, 3.2, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(-0.75, 1.6, 3.0), M4.S(0.3, 3.2, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(3.9, 1.6, 3.0), M4.S(0.6, 3.2, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(1.5, 0.3, 3.0), M4.S(4.2, 0.6, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(-1.8, 2.75, 3.0), M4.S(2.0, 0.9, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(1.5, 2.85, 3.0), M4.S(4.2, 0.7, 0.12)), '#f6f1e8');
+  D(m.box, M4.chain(M4.T(1.5, 1.45, 3.0), M4.S(4.2, 1.7, 0.05)), '#bfe6ff', { alpha: glassA, spec: 1 });
+  // sign
+  D(m.box, M4.chain(M4.T(0.3, 3.55, 3.05), M4.S(8.4, 0.7, 0.25)), '#14a37f');
+  D(m.quad, M4.chain(M4.T(0.3, 3.55, 3.19), M4.S(1.6, 0.68, 1)), [1, 1, 1], { tex: TX.sign, em: 0.35 });
+  D(m.box, M4.chain(M4.T(0, 3.95, -0.5), M4.S(8.6, 0.12, 7.4)), '#cfd3d8');
+  // door: intact before burst, shards after
+  const burst = t >= 6.1 ? t - 6.1 : -1;
+  if (burst < 0) {
+    D(m.box, M4.chain(M4.T(-1.8, 1.15, 3.0), M4.S(1.6, 2.3, 0.05)), '#bfe6ff', { alpha: glassA + 0.08, spec: 1 });
+    D(m.box, M4.chain(M4.T(-1.8, 1.15, 3.0), M4.S(1.7, 2.4, 0.03)), '#8a96a3', { alpha: 0.0 });
+  } else {
+    const R = rng(3);
+    for (let i = 0; i < 14; i++) {
+      const vx = (R() - 0.5) * 6, vy = 2 + R() * 4, vz = 3 + R() * 5, s = burst;
+      const y = 1.2 + vy * s - 4.9 * s * s; if (y < 0) continue;
+      D(m.box, M4.chain(M4.T(-1.8 + vx * s, y, 3.1 + vz * s), M4.RX(s * 7 + i), M4.RY(s * 5), M4.S(0.25 + R() * 0.2, 0.3, 0.02)), '#cfefff', { alpha: 0.5, spec: 1 });
+    }
+  }
+}
+
+function drawStreet(t, H) {
+  // ground, sidewalk, road, crosswalk
+  D(m.box, M4.chain(M4.T(0, -0.15, 0), M4.S(900, 0.2, 900)), '#9db48a', { spec: 0 });
+  D(m.box, M4.chain(M4.T(0, -0.04, 4.6), M4.S(120, 0.1, 3.2)), '#d2cbbf', { spec: 0.1 });
+  D(m.box, M4.chain(M4.T(0, -0.06, 11), M4.S(120, 0.1, 9.6)), [1, 1, 1], { tex: TX.road, tr: [30, 2.5], spec: 0.1 });
+  for (let i = 0; i < 7; i++) D(m.box, M4.chain(M4.T(6 + i * 0.9 - 2.7, 0.0, 11), M4.S(0.5, 0.02, 8)), '#f4f4f4', { spec: 0.1 });
+  for (let i = 0; i < 14; i++) D(m.box, M4.chain(M4.T(-60 + i * 9, 0.0, 11), M4.S(4, 0.02, 0.18)), '#ffd400', { spec: 0 });
+  D(m.box, M4.chain(M4.T(0, -0.05, -2), M4.S(120, 0.1, 10)), '#c9c3b6', { spec: 0 });
+  // trees
+  for (const x of [4.8, 9, -9.5, 13]) { D(m.cyl, M4.chain(M4.T(x, 0.8, 5.2), M4.S(0.25, 1.6, 0.25)), '#7a5a3c'); D(m.sphere, M4.chain(M4.T(x, 2.2, 5.2), M4.S(1.8)), '#57b85b', { spec: 0.2 }); }
+  // bus stop + pedestrians
+  const bx = -7.2, bz = 5.0;
+  D(m.box, M4.chain(M4.T(bx, 2.3, bz), M4.S(3.2, 0.12, 1.4)), '#3a4250');
+  D(m.cyl, M4.chain(M4.T(bx - 1.4, 1.15, bz - 0.5), M4.S(0.1, 2.3, 0.1)), '#3a4250');
+  D(m.cyl, M4.chain(M4.T(bx + 1.4, 1.15, bz - 0.5), M4.S(0.1, 2.3, 0.1)), '#3a4250');
+  D(m.box, M4.chain(M4.T(bx, 1.3, bz - 0.6), M4.S(2.8, 1.8, 0.05)), '#bfe6ff', { alpha: 0.3 });
+  D(m.box, M4.chain(M4.T(bx, 0.45, bz - 0.35), M4.S(2.4, 0.08, 0.45)), '#8a5a3a');
+  const react = smooth(6.4, 6.8, t);
+  [[bx - 0.7, '#4f8cff', 'short', '#3b2a20', -0.1], [bx + 0.7, '#ffc94d', 'bob', '#5a3b28', 0.2]].forEach(([x, shirt, hair, hc, ph], i) => {
+    const look = Math.atan2(DOOR[0] - x, DOOR[2] - (bz + 0.2));
+    const jump = react > 0 ? Math.max(0, Math.sin((t - 6.5 + ph) * 9)) * 0.15 * (1 - smooth(7.4, 7.8, t)) : 0;
+    drawCharacter(E, M4.chain(M4.T(x, jump, bz + 0.2), M4.S(0.95)), { shirt, hair, hairColor: hc, bodyYaw: lerp(0.3 * (i ? -1 : 1), look, react), surprise: react, mouth: react * 0.9, armL: [0.25 + react * 2.3, 0.2], armR: [0.25 + react * 2.3, 0.2] });
+    shadow(x, 0, bz + 0.2, 0.7);
+  });
+  // bus
+  const busX = 9 - smooth(6.1, 8.0, t) * 3;
+  D(m.box, M4.chain(M4.T(busX, 1.7, 12.5), M4.S(9, 2.8, 2.5)), '#35a85c', { spec: 0.6 });
+  D(m.box, M4.chain(M4.T(busX, 2.3, 12.5), M4.S(9.05, 0.9, 2.55)), '#2c3440', { spec: 1 });
+  D(m.box, M4.chain(M4.T(busX, 3.15, 12.5), M4.S(8.6, 0.2, 2.3)), '#e9f2ec');
+  for (const dx of [-3, 3]) for (const dz of [-1.25, 1.25]) D(m.cyl, M4.chain(M4.T(busX + dx, 0.5, 12.5 + dz), M4.RX(Math.PI / 2), M4.S(1, 0.3, 1)), '#22252b');
+  // apartments
+  for (const a of APTS) {
+    D(m.box, M4.chain(M4.T(a.x, a.h / 2, a.z), M4.S(a.w, a.h, a.d)), [1, 1, 1], { tex: TX.apt, tr: [a.w / 4, a.h / 4], spec: 0.1 });
+    D(m.box, M4.chain(M4.T(a.x, a.h + 0.4, a.z), M4.S(a.w + 0.3, 0.8, a.d + 0.3)), '#d36b5a');
+  }
+  // far hills
+  for (let i = 0; i < 6; i++) D(m.cone, M4.chain(M4.T(-250 + i * 100, 25, -260), M4.S(160, 60, 120)), '#8fb07c', { spec: 0 });
+}
+
+function drawPile(t, H, C, k) {
+  if (H <= 0) return;
+  const R = H * k;
+  D(m.mountain, M4.chain(M4.T(C[0], H / 2 - 0.05, C[2]), M4.S(R * 2, H, R * 2)), [1, 1, 1], { tex: TX.pile, tr: [Math.min(36, Math.max(2, Math.round(R * 0.9))), Math.min(14, Math.max(1, Math.round(H * 0.45)))], spec: 0.3 });
+  // individual kimbap on the surface near the top (scale with mountain)
+  const local = t >= 12.6; const ks = local ? 0.36 : clamp(H * 0.07, 0.3, 4.0);
+  const n = PILE_KB.length;
+  for (let i = 0; i < n; i++) {
+    const p = PILE_KB[i];
+    const rr = local ? p.r * 4.5 / R : p.r * 0.9;
+    const y = H * (1 - rr) + ks * 0.15;
+    const x = C[0] + Math.sin(p.a) * rr * R, z = C[2] + Math.cos(p.a) * rr * R;
+    if (!local && H > 20 && rr > 0.35) continue;
+    D(m.prism, M4.chain(M4.T(x, y, z), M4.RY(p.yaw), M4.RX(p.tilt), M4.S(ks * p.s)), '#fbfaf3', { spec: 0.8 });
+    D(m.box, M4.chain(M4.T(x, y, z), M4.RY(p.yaw), M4.RX(p.tilt), M4.S(ks * p.s), M4.T(0, -0.15, 0), M4.S(0.42, 0.45, 0.41)), '#1f2a24');
+  }
+}
+
+function drawClouds(t, alpha) {
+  for (const c of CLOUDS) {
+    const x = c.x + t * 2;
+    for (let j = 0; j < 4; j++) D(m.sphere, M4.chain(M4.T(x + (j - 1.5) * c.s * 0.6, c.y + (j % 2) * c.s * 0.18, c.z), M4.S(c.s * (j % 3 === 1 ? 1.2 : 0.9), c.s * 0.65, c.s * 0.8)), '#ffffff', { em: 0.55, spec: 0, alpha });
+  }
+}
+function drawPlane(t) {
+  const x = -140 + (t - 10.6) * 70, y = 96, z = -90;
+  const P = M4.chain(M4.T(x, y, z), M4.RY(Math.PI / 2), M4.S(3));
+  D(m.cyl, M4.chain(P, M4.RX(Math.PI / 2), M4.S(1.2, 7, 1.2)), '#f4f6fa', { spec: 0.9 });
+  D(m.box, M4.chain(P, M4.T(0, 0, 0.3), M4.S(9, 0.15, 1.6)), '#dfe5ee');
+  D(m.box, M4.chain(P, M4.T(0, 0.9, -3.0), M4.S(0.15, 1.8, 1.2)), '#ff6b81');
+  D(m.box, M4.chain(P, M4.T(0, 0.1, -3.1), M4.S(3, 0.12, 0.8)), '#dfe5ee');
+}
+
+// flying kimbap (burst from the door)
+function drawFlying(t, t0, dur, n, origin, spread, scale, seed, toward) {
+  const R = rng(seed);
+  for (let i = 0; i < n; i++) {
+    const delay = R() * dur, vx = (R() - 0.5) * spread, vy = 3 + R() * 4, vz = (toward || 4) + R() * 4, rot = R() * 6;
+    const s = t - t0 - delay; if (s < 0 || s > 1.4) continue;
+    const y = origin[1] + vy * s - 6 * s * s; if (y < -0.2) continue;
+    kimbap(M4.chain(M4.T(origin[0] + vx * s, y, origin[2] + vz * s), M4.RY(rot + s * 4), M4.RX(s * 6 + rot), M4.S(scale)), { sticker: i % 2 === 0 });
+  }
+}
+
+// ---------------- hero / clerk states ----------------
+const HERO = { shirt: '#ff6b81', hood: true, hair: 'bob' };
+const CLERK = { shirt: '#ffffff', vest: '#14a37f', hair: 'short', hairColor: '#5b3a26' };
+function blinkAt(t, off) { const p = (t + off) % 3.1; return p < 0.12 ? Math.sin(p / 0.12 * Math.PI) : 0; }
+
+// ---------------- shots ----------------
+const peak = (t) => { const H = pileH(t), C = pileCenter(t); return [C[0], H, C[2]]; };
+const SHOTS = [
+  { t0: 0, w: 4, target: (t) => { const p = peak(coldST(t)); return { pos: [p[0] + 2.2 - t * 0.3, p[1] + 0.6, p[2] + 5.6 - t * 0.6], look: [p[0] + 0.45, p[1] - 0.15, p[2]], fov: 50 }; } },
+  { t0: 0.8, w: 5, target: (t) => ({ pos: [2.5, 1.65, 1.7], look: [0.8, 1.15, -1.5], fov: 48 }) },
+  { t0: 1.6, w: 7, target: (t) => ({ pos: [2.4, 1.6, 1.6], look: [0.8, 1.2, -1.6], fov: 52 }) },
+  { t0: 3.0, w: 5, target: (t) => ({ pos: [3.3, 1.85, 1.1], look: [1.0, 1.2, -1.6], fov: 46 }) },
+  { t0: 4.75, w: 4, target: (t) => { const H = pileH(t); return { pos: [3.2, 1.8 + H * 0.15, 2.5], look: [0.3, 1.2 + H * 0.65, -1.0], fov: 52 }; } },
+  { t0: 6.1, w: 7, target: (t) => { const H = pileH(t); return { pos: [0.5, 2.0 + H * 0.55, 15 + H * 1.25], look: [-0.8, 1.4 + H * 0.6, 1.0], fov: 50 }; } },
+  { t0: 8.6, w: 8, target: (t) => { const p = peak(t); return { pos: [p[0] + 4 + p[1] * 0.3, p[1] * 1.0 + 5, p[2] + 16 + p[1] * 1.35], look: [p[0], p[1] * 0.9, p[2]], fov: 50 }; } },
+  { t0: 11.0, snap: true, target: (t) => { const p = peak(t); return { pos: [p[0] + 4.5 + (t - 11) * 2, p[1] + 2.0 + (t - 11) * 2.5, p[2] + 12.5 + (t - 11) * 6], look: [p[0], p[1] + 0.3, p[2]], fov: 52 }; } },
+  { t0: 12.6, w: 6, target: (t) => { const p = peak(t); return { pos: [p[0] + 0.5, p[1] + 1.0, p[2] + 5.9], look: [p[0] + 0.7, p[1] + 0.45, p[2]], fov: 46 }; } },
+  { t0: 14.55, w: 6, target: (t) => { const p = peak(t); return { pos: [p[0] + 0.25, p[1] + 1.05, p[2] + 2.7], look: [p[0] + 1.35, p[1] + 0.75, p[2] + 0.1], fov: 40 }; } },
+  { t0: 16.85, w: 6, target: (t) => { const p = peak(t); const k = (t - 16.85) * 0.45; return { pos: [p[0] + 0.1, p[1] + 1.15, p[2] + 3.1 - k], look: [p[0], p[1] + 0.95, p[2]], fov: 44 }; } },
+];
+const SHAKES = [[0.0, 0.25], [1.75, 0.04], [4.9, 0.08], [6.1, 0.25], [8.7, 0.3], [11.1, 0.4], [12.65, 0.05], [14.6, 0.02], [16.5, 0.03], [16.95, 0.05], [17.7, 0.05], [18.45, 0.07]];
+function shakeAt(t) {
+  let s = [0, 0, 0];
+  for (const [t0, a] of SHAKES) { const d = t - t0; if (d < 0 || d > 0.6) continue; const k = a * Math.exp(-d * 6); s[0] += Math.sin(d * 63) * k; s[1] += Math.sin(d * 51 + 1) * k; s[2] += Math.sin(d * 47 + 2) * k * 0.5; }
+  const H = pileH(t); const sc = t > 6.1 && t < 12.6 ? Math.max(1, H * 0.06) : 1;
+  return s.map(v => v * sc);
+}
+
+// ---------------- environment ----------------
+function envAt(t) {
+  const out = t >= 6.1 || t < 0.8; const sky = smooth(10.6, 12.4, t);
+  return {
+    skyTop: out ? [lerp(0.33, 0.18, sky), lerp(0.6, 0.45, sky), lerp(0.96, 0.92, sky)] : [0.95, 0.94, 0.9],
+    skyBot: out ? [lerp(0.78, 0.72, sky), lerp(0.9, 0.86, sky), 1.0] : [0.95, 0.94, 0.9],
+    fog: out ? [lerp(0.78, 0.72, sky), lerp(0.9, 0.86, sky), 1.0] : [0.95, 0.94, 0.9],
+    fogNear: out ? 40 + sky * 150 : 30, fogFar: out ? 380 + sky * 900 : 80,
+    light: [0.5, 1.0, 0.65], amb: [0.92, 0.95, 1.0], gnd: [0.62, 0.58, 0.55]
+  };
+}
+
+// ---------------- scene per time ----------------
+function scene(t) {
+  // cold open uses the street at a mid-burst story time, then rewinds
+  const st = coldST(t);
+  const H = pileH(st), C = pileCenter(st), k = PK(st);
+  const outside = t < 0.8 || t >= 6.1;
+  drawStore(st, H, C, k);
+  if (outside) drawStreet(st, H);
+  drawPile(st, H, C, k);
+  if (t >= 10.2) { drawClouds(t, 1); }
+  if (t >= 10.6 && t < 12.8) drawPlane(t);
+
+  // ---- counter kimbap (interior 0.8 .. 6.1)
+  if (!outside) {
+    const n = Math.min(64, Math.pow(2, expAt(t)));
+    const glow = t >= 1.6 && t < 2.05 ? 0.5 + 0.5 * Math.sin((t - 1.6) * 40) : 0;
+    for (let i = 0; i < n; i++) {
+      const born = i < 2 ? 0.8 : bornTime(i);
+      const pop = easeOutBack((t - born) / 0.22);
+      const layer = Math.floor(i / 16), idx = i % 16, row = Math.floor(idx / 8), col = idx % 8;
+      let x = 0.4 + col * 0.26 + (layer % 2) * 0.13, z = -2.15 + row * 0.3, y = 1.17 + layer * 0.26;
+      if (i < 2) { x = 1.15 + i * 0.32; z = -1.75; }
+      if (i >= 2 && i < 4) { x = 1.0 + (i - 2) * 0.64; z = -1.72; }
+      if (t > 4.75) y -= smooth(4.75, 5.4, t) * 0; // carried by pile visually
+      const s = 0.27 * clamp(pop, 0, 1.3);
+      if (s <= 0.001) continue;
+      kimbap(M4.chain(M4.T(x, y, z), M4.RY(0.35 + (i % 3) * 0.2), M4.S(s)), { glow: i < 2 ? glow : 0, stickerScale: i < 4 ? 1.25 : 1 });
+    }
+  }
+  // flying kimbap from the door
+  if (t < 0.8) { const p = peak(st); drawFlying(t + 0.5, 0, 0.9, 18, [DOOR[0] + 0.9, 1.0, DOOR[2] + 0.6], 3, 0.4, 5, 3.0);
+    const cp = M4.apply(M4.I(), [p[0] + 2.2 - t * 0.3, p[1] + 0.6, p[2] + 5.6 - t * 0.6]);
+    kimbap(M4.chain(M4.T(cp[0] - 1.25, cp[1] - 0.95 - t * 0.2, cp[2] - 2.6), M4.RY(-0.35 - t * 0.5), M4.RZ(0.12 + t * 0.4), M4.S(0.55)), { stickerScale: 1.6 });
+    kimbap(M4.chain(M4.T(cp[0] - 0.2, cp[1] - 1.1 + t * 0.15, cp[2] - 2.1), M4.RY(-0.5 + t * 0.6), M4.RZ(-0.2 - t * 0.5), M4.S(0.45)), { stickerScale: 1.6 }); }
+  if (t >= 6.1 && t < 9.0) drawFlying(t, 6.1, 1.6, 34, [DOOR[0], 1.0, DOOR[2] + 0.4], 7, 0.5, 6, 4);
+  if (t >= 4.75 && t < 6.1) drawFlying(t, 4.75, 1.1, 16, [-1.2, 1.0, -1.2], 2, 0.25, 7, 0.4);
+
+  // ---- hero
+  let hp, hy = 0, hyaw = 1.8, hopts = {};
+  const surpr = (t < 0.8) ? 1 : smooth(1.75, 1.95, t) * (t < 4.75 ? 1 : 1);
+  if (outside && t < 12.6) {
+    const p = [C[0], H, C[2]];
+    hp = [p[0], p[1] - 0.62, p[2] + 0.15]; hyaw = 0.1;
+    hopts = { surprise: 1, mouth: 1.0, armL: [2.4 + Math.sin(t * 14) * 0.25, 0.2], armR: [2.4 + Math.cos(t * 14) * 0.25, 0.2], headYaw: 0, headPitch: t > 8.6 ? -0.15 : 0 };
+  } else if (t >= 12.6) {
+    const p = peak(t);
+    hp = [p[0] - 0.05, p[1] - 0.55, p[2] + 0.1]; hyaw = 0.35;
+    const toClerk = smooth(12.9, 13.3, t);
+    const dots = smooth(16.85, 17.0, t);
+    hopts = { surprise: 1 - dots, mouth: t < 14.5 ? 0.9 : (t < 16.85 ? 0.35 : 0.0), browTilt: dots * 0.35, headYaw: lerp(-0.2, 0.45, toClerk) * (1 - smooth(16.8, 16.95, t)) , eyeDots: dots, armL: [0.6 + dots * 0.4, 0.4], armR: [0.6, 0.4 + (t < 14.5 ? 0 : 0.3)] };
+    if (t >= 16.85) { hyaw = 0; hopts.headYaw = 0; hopts.headRoll = Math.sin((t - 16.85) * 3) * 0.06; }
+  } else {
+    // interior: stand at counter, then lifted by the pile
+    const lift = t >= 4.75 ? smooth(4.75, 6.1, t) : 0;
+    hp = [lerp(0.35, C[0] + 0.2, lift), lerp(0, Math.max(0, H - 1.1), lift), lerp(-1.15, C[2] + 0.4, lift)];
+    hyaw = lerp(1.1, 0.9, lift);
+    const look = smooth(1.85, 2.05, t);
+    const busy = t >= 3.0 && t < 4.75;
+    hopts = {
+      surprise: surpr, mouth: surpr * 0.9 + (busy ? 0.2 * Math.sin(t * 20) : 0),
+      headYaw: lerp(1.0, -0.4, look) * (1 - lift), headPitch: lerp(0.25, -0.05, look),
+      armL: busy ? [0.9 + Math.sin(t * 18) * 0.5, 1.0 + Math.cos(t * 16) * 0.4] : [0.3 + lift * 2, t < 1.6 ? 1.0 : 0.6],
+      armR: busy ? [0.9 + Math.cos(t * 18) * 0.5, 1.0 + Math.sin(t * 15) * 0.4] : [0.3 + lift * 2, t < 1.6 ? 1.0 : 0.6]
+    };
+  }
+  drawCharacter(E, M4.chain(M4.T(hp[0], hp[1], hp[2])), Object.assign({}, HERO, { bodyYaw: hyaw, blink: hopts.surprise > 0.5 ? 0 : blinkAt(t, 0) }, hopts));
+  if (!outside && t < 4.75) shadow(hp[0], 0, hp[2], 0.75);
+
+  // ---- clerk
+  if (!outside) {
+    const hand = t >= 0.8 && t < 1.6 ? 1 : 0;
+    drawCharacter(E, M4.chain(M4.T(1.25, 0, -2.75)), Object.assign({}, CLERK, { bodyYaw: 0, blink: blinkAt(t, 1.3), surprise: 0, mouth: 0.05, headYaw: 0.15, armR: [0.3, 0.3 + hand * 1.0], armL: [0.3, 0.3 + hand * 1.0] }));
+  }
+  if (t >= 12.6) {
+    const p = peak(t);
+    const rise = easeOutBack((t - 12.75) / 0.55);
+    const cy = p[1] - 1.9 + rise * 1.55;
+    const cx = p[0] + 1.5, cz = p[2] + 0.0;
+    const talking = t >= 14.75 && t < 17.27;
+    const scanBeep = t >= 14.55 && t < 14.85;
+    const C0 = M4.chain(M4.T(cx, cy, cz), M4.RY(-0.6));
+    // counter in front of clerk (relative), clerk behind
+    D(m.box, M4.chain(C0, M4.T(0, 0.5, 0.55), M4.S(1.5, 1.0, 0.6)), '#ece6dc');
+    D(m.box, M4.chain(C0, M4.T(0, 1.02, 0.55), M4.S(1.6, 0.05, 0.7)), '#6b5446');
+    D(m.box, M4.chain(C0, M4.T(0, 0.55, 0.86), M4.S(1.4, 0.12, 0.02)), [1, 1, 1], { tex: TX.strip, tr: [2, 1], em: 0.3 });
+    const holdBag = t >= 14.5;
+    const Hd = drawCharacter(E, C0, Object.assign({}, CLERK, { blink: blinkAt(t, 0.6), mouth: talking ? 0.15 + 0.35 * Math.abs(Math.sin((t - 14.75) * 13)) : 0.03, headYaw: 0, headPitch: 0.05, armR: [0.35, holdBag ? 1.35 : 0.3], armL: [0.35, holdBag ? 1.2 : 0.3] }));
+    if (holdBag) {
+      const bp = easeOutBack((t - 14.5) / 0.3);
+      bag(M4.chain(C0, M4.T(-0.32, 1.25, 0.72), M4.S(0.9 * clamp(bp, 0, 1.2))), { glow: scanBeep ? 0.6 : 0 });
+      // scanner
+      if (scanBeep) D(m.box, M4.chain(C0, M4.T(-0.05, 1.18, 0.72), M4.RZ(0.15), M4.S(0.7, 0.02, 0.01)), '#ff2a2a', { em: 1, alpha: 0.9 });
+    }
+    // multiplying bags: first in the clerk's hands (16.5), then around the hero's face (16.9+)
+    const nb = bagCount(t);
+    if (nb >= 2 && t < 16.85) { const s2 = easeOutBack((t - BAG_T[0]) / 0.2); bag(M4.chain(C0, M4.T(0.3, 1.25, 0.74), M4.RZ(-0.2), M4.S(0.9 * clamp(s2, 0, 1.2)))); }
+    if (t >= 16.85) {
+      const hpk = peak(t);
+      for (let i = 0; i < nb; i++) {
+        const g = i < 4 ? 1 : Math.min(5, Math.floor(Math.log2(i)));
+        const born = BAG_T[Math.min(5, g)] + (i % 4) * 0.03;
+        const sc = easeOutBack((t - born) / 0.2); if (sc <= 0) continue;
+        const a = i * 2.39996 + 0.6, r = 0.08 + 0.6 * (1 - i / 64);
+        const x = Math.cos(a) * r * 0.75, y = 1.3 + Math.sin(a) * r * 1.0, z = 0.85 + i * 0.012;
+        bag(M4.chain(M4.T(hpk[0] + x, hpk[1] + y - 0.35, hpk[2] + z), M4.RZ(Math.sin(i * 1.7) * 0.35), M4.S(0.62 * clamp(sc, 0, 1.2))));
+      }
+    }
+  }
+}
+const BAG_T = [16.5, 16.85, 17.2, 17.55, 17.9, 18.2];
+function bagCount(t) { let n = 0; for (let k = 0; k < BAG_T.length; k++) if (t >= BAG_T[k]) n = Math.pow(2, k + 1); return n; }
+// birth time of counter kimbap i (doubling instants)
+function bornTime(i) {
+  for (let tt = 0.8; tt < 6.2; tt += 1 / 60) if (Math.pow(2, expAt(tt)) > i) return tt;
+  return 99;
+}
+
+// ---------------- HUD ----------------
+const SUBS = [
+  [0.0, 2.75, '편의점에서 1+1 샀을 뿐인데,'],
+  [2.85, 5.95, '받은 김밥마다 또 1+1이 붙어.'],
+  [6.1, 7.7, '편의점이 터지고,'],
+  [8.6, 11.1, '동네가 김밥 산이 됐어.'],
+  [12.6, 14.65, '근데 알바생이 올라와서,'],
+  [14.75, 17.4, '<span class="q">"봉투도 1+1인데,<br>필요하세요?"</span>'],
+];
+const POPS = [
+  [0.02, 0.5, '펑!', 250, 255, -8], [0.55, 0.8, '처음엔', 205, 330, 0], [0.85, 1.55, '띵동', 300, 300, 6],
+  [1.72, 2.6, '뿅!', 260, 330, -6], [3.05, 3.9, '뿅뿅뿅', 250, 300, 5], [4.85, 5.8, '와르르', 260, 300, -5],
+  [6.12, 7.0, '펑!', 280, 300, 7], [8.65, 9.6, '쿠구궁', 250, 310, -4], [11.05, 11.9, '두둥', 250, 300, 0],
+  [12.75, 13.5, '쑥', 300, 330, 8], [14.55, 15.3, '삑', 300, 300, -6], [16.5, 16.9, '뿅', 300, 300, 5], [16.9, 17.5, '뿅뿅', 230, 300, -5], [17.55, 18.4, '뿅뿅뿅', 220, 290, 5],
+];
+const $ = (id) => document.getElementById(id);
+function fmtNum(e) {
+  const v = Math.pow(2, e);
+  if (v >= 1e12) return { n: (v / 1e12).toFixed(1) + '조', full: v.toLocaleString('en-US') };
+  if (v >= 1e8) return { n: (v / 1e8).toFixed(1) + '억', full: v.toLocaleString('en-US') };
+  return { n: v.toLocaleString('en-US'), full: null };
+}
+function hud(t) {
+  // subtitles
+  const s = SUBS.find(([a, b]) => t >= a && t < b);
+  $('sub').innerHTML = s ? s[2] : '';
+  // counter
+  const C = $('counter');
+  const endT = 18.6;
+  let lab = '삼각김밥', num, unit = '개', sub = '2배씩 늘어나는 중', e = expAt(t), lastChange = 0;
+  if (t >= 16.5) { lab = '봉투'; num = String(bagCount(t)); sub = '봉투도 2배씩'; for (const bt of BAG_T) if (t >= bt) lastChange = bt; }
+  else {
+    const f = fmtNum(e); num = f.n; if (f.full) sub = f.full;
+    for (let tt = t; tt > t - 0.3; tt -= 1 / 60) if (expAt(tt) !== e) { lastChange = tt; break; }
+  }
+  const unitTxt = /[조억]$/.test(num) ? ' 개' : '개';
+  C.querySelector('.lab').textContent = lab;
+  C.querySelector('.num').innerHTML = num + '<small>' + unitTxt.trim() + '</small>';
+  C.querySelector('.num').style.fontSize = num.length >= 10 ? '46px' : '58px';
+  C.querySelector('.sub').textContent = sub;
+  const bump = lastChange ? 1 + 0.18 * Math.exp(-(t - lastChange) * 12) : 1;
+  if (t < 0.8) {
+    C.style.left = '40px'; C.style.top = '420px';
+    C.style.transform = `scale(${1.12 + 0.05 * Math.sin(t * 40)}) rotate(${Math.sin(t * 30) * 2}deg)`;
+    C.querySelector('.sub').textContent = '멈추지 않는 중';
+  } else { C.style.left = '20px'; C.style.top = '506px'; C.style.transform = `scale(${bump})`; }
+  C.style.opacity = t >= endT ? 0 : 1;
+  // pop text
+  const P = $('pop'); const p = POPS.find(([a, b]) => t >= a && t < b);
+  if (p) {
+    const u = (t - p[0]) / (p[1] - p[0]); const sc = easeOutBack(Math.min(1, u * 4)) * (u > 0.8 ? 1 - (u - 0.8) * 5 : 1);
+    P.textContent = p[2]; P.style.opacity = 1; P.style.left = p[3] + 'px'; P.style.top = p[4] + 'px';
+    P.style.transform = `translate(-50%,-50%) scale(${Math.max(0, sc)}) rotate(${p[5]}deg)`;
+    P.style.color = p[2] === '처음엔' ? '#ffe14d' : '#fff';
+  } else P.style.opacity = 0;
+  // rewind + flash
+  $('rew').style.opacity = t >= 0.55 && t < 0.8 ? 0.9 : 0;
+  document.querySelector('canvas').style.filter = t >= 0.55 && t < 0.8 ? 'saturate(0.4) contrast(1.15) blur(1.2px)' : (t >= endT ? 'brightness(0.8) blur(2px)' : 'none');
+  let fl = 0; for (const [ft, a] of [[0.78, 0.9], [6.1, 0.5], [11.0, 0.3], [14.55, 0.25]]) { const d = t - ft; if (d >= 0 && d < 0.25) fl = Math.max(fl, a * (1 - d / 0.25)); }
+  $('flash').style.opacity = fl;
+  // end card
+  const ec = smooth(endT, endT + 0.25, t);
+  $('end').style.opacity = ec; $('end').style.transform = `scale(${0.85 + 0.15 * easeOutBack((t - endT) / 0.35)})`;
+  $('title').style.opacity = 1 - ec * 0.65; $('badge').style.opacity = 1 - ec * 0.65;
+  $('sub').style.opacity = t >= endT ? 0 : 1;
+}
+
+window.DURATION = DURATION;
+window.renderAt = function (t) {
+  const cam = springCamera(SHOTS, t, shakeAt(t));
+  E.begin(cam, envAt(t));
+  scene(t);
+  E.end();
+  hud(t);
+  return true;
+};
+window.renderAt(0);
+</script>
+</body></html>
