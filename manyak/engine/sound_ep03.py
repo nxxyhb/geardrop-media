@@ -43,10 +43,10 @@ section(13.0, 16.55, 104, 0.7, -2)  # awkward classroom
 section(16.7, 18.0, 140, 0.85)
 
 sfx = np.zeros(N, np.float32)
-def boom(t, amp=0.9, f=55, dur=0.7):
+def boom(t, amp=0.9, f=55, dur=0.7, nz=2.0):
     n = int(SR * dur); tt = np.arange(n) / SR
     s = np.sin(2*np.pi*(f + 60*np.exp(-tt*18))*tt) * env_exp(n, 0.18)
-    s += lowpass(noise(n, int(t*100)), 0.08) * env_exp(n, 0.12) * 2.0
+    s += lowpass(noise(n, int(t*100)), 0.03) * env_exp(n, 0.12) * nz
     add(sfx, s * amp, t)
 def pop(t, amp=0.35, f=900):
     n = int(SR * 0.09); tt = np.arange(n) / SR
@@ -88,13 +88,13 @@ whoosh(2.98, 0.22, 0.35, seed=4); pop(3.08, 0.25, 900); pop(3.12, 0.25, 1000)
 whoosh(3.38, 0.22, 0.35, seed=5); [pop(3.48 + k * 0.04, 0.22, 900 + k * 90) for k in range(4)]
 for k in range(3): whoosh(3.78 + k * 0.12, 0.16, 0.3, seed=6 + k)
 for k in range(10): pop(3.95 + k * 0.025, 0.15, 700 + k * 70)
-boom(5.0, 0.8, 50, 0.6); boom(5.3, 0.9, 44, 0.8)                             # 두둥
+boom(5.0, 0.35, 50, 0.6, 0.6); boom(5.3, 0.4, 44, 0.8, 0.6)                             # 두둥
 murmur(5.1, 1.0, 0.25, 12)
 boom(6.2, 0.5, 60, 0.5); murmur(6.25, 1.5, 0.45, 13)                         # 웅성웅성
 whoosh(7.7, 0.3, 0.35, seed=14); rumble(7.85, 1.4, 0.7, 15)                  # 쿠구궁
 sweep(9.3, 300, 1400, 1.0, 0.18); sweep(9.5, 900, 500, 1.2, 0.1)              # 슈웅 UFO
 click(11.48, 0.6); tone(11.5, 2637, 0.25, 0.12, 0.08)                         # 찰칵
-sweep(12.0, 2400, 3200, 0.5, 0.1)                                            # 번쩍
+sweep(11.86, 2400, 3200, 0.12, 0.08)                                            # 번쩍
 tone(12.84, 880, 0.3, 0.06, 0.2)                                             # eye open
 sweep(13.0, 900, 180, 0.35, 0.3); boom(13.05, 0.35, 70, 0.35)                # 뚝
 sweep(15.5, 220, 110, 0.18, 0.4)                                             # 꿀꺽
@@ -102,6 +102,12 @@ whoosh(16.02, 0.25, 0.4, seed=17)                                            # �
 boom(16.62, 1.0, 45, 0.8); murmur(16.65, 1.3, 0.3, 18)                       # 쾅 62명
 tone(17.32, 523, 0.5, 0.15, 0.25); tone(17.55, 494, 0.6, 0.15, 0.3)          # ...또야?
 tone(18.0, 1568, 1.2, 0.3, 0.45); tone(18.0, 2093, 1.0, 0.12, 0.35)          # 엔딩 띵
+# pre-reversal silence 11.95-12.82
+def gate(x, a, b, f=0.08):
+    i0, i1 = int(a*SR), int(b*SR); k = int(f*SR)
+    x[i0-k:i0] *= np.linspace(1, 0, k); x[i0:i1] = 0
+gate(bgm, 11.95, 12.82); gate(sfx, 11.99, 12.82, 0.02)
+
 # narration
 SEG = json.loads(sys.argv[1])  # [[path, start], ...]
 vo = np.zeros(N, np.float32); duck = np.ones(N, np.float32)
