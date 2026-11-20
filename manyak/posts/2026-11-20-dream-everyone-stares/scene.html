@@ -855,7 +855,7 @@ const POPS = [
   [3.0, 3.7, '휙!', 330, 380, 7], [3.82, 4.7, '휙휙휙', 250, 380, -5], [5.0, 6.0, '두둥', 300, 400, 0],
   [6.25, 7.6, '웅성웅성', 252, 400, -3], [7.85, 9.0, '쿠구궁', 252, 560, 4], [9.35, 10.4, '슈웅', 300, 380, -6],
   [11.45, 12.0, '찰칵', 310, 390, 6], [12.0, 12.5, '번쩍', 220, 560, -5], [13.0, 13.8, '뚝', 360, 380, 8],
-  [15.45, 16.0, '꿀꺽', 190, 590, -6], [16.05, 16.55, '휙!', 330, 380, -7], [17.3, 18.0, '...또야?', 230, 400, -4, '#ffe14d'],
+  [15.45, 16.0, '꿀꺽', 190, 590, -6], [16.05, 16.55, '휙!', 330, 380, -7], [16.66, 17.22, '옆 반까지?!', 252, 400, -4, '#ffe14d'], [17.25, 18.05, '...또야?', 230, 400, -4, '#ffe14d'],
 ];
 const $ = (id) => document.getElementById(id);
 // counter value keys [t, value]; between keys of a "ramp" interpolate geometrically
@@ -902,9 +902,9 @@ function hud(t) {
   // pop
   const P = $('pop'); const p = POPS.find(([a, b]) => t >= a && t < b);
   if (p) {
-    const u = (t - p[0]) / (p[1] - p[0]); const sc = easeOutBack(Math.min(1, u * 4)) * (u > 0.8 ? 1 - (u - 0.8) * 5 : 1);
+    const u = (t - p[0]) / (p[1] - p[0]); const sc = easeOutBack(Math.min(1, u * 4));
     P.textContent = p[2]; P.style.opacity = 1; P.style.left = p[3] + 'px'; P.style.top = p[4] + 'px';
-    P.style.transform = `translate(-50%,-50%) scale(${Math.max(0, sc)}) rotate(${p[5]}deg)`;
+    P.style.transform = `translate(-50%,-50%) scale(${Math.max(0, sc)}) rotate(${p[5]}deg)`; P.style.opacity = u > 0.82 ? 1 - (u - 0.82) / 0.18 : 1;
     P.style.color = p[6] || '#fff';
   } else P.style.opacity = 0;
   // dream border
