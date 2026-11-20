@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>만약에 EP03 꿈속 시선</title>
+<link rel="stylesheet" href="../../engine/hud.css">
+<style>
+  #dream{position:absolute;inset:0;opacity:0;pointer-events:none;}
+  #dream .puff{position:absolute;border-radius:50%;background:#fff;filter:blur(3px);}
+  #dream .lab{position:absolute;left:84px;top:322px;font-size:20px;color:#6a4fd8;background:#fff;border-radius:14px;padding:3px 12px 5px;box-shadow:0 3px 8px rgba(0,0,0,.25);}
+  #rew{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 3px,rgba(0,0,0,0) 3px 9px);}
+  #lidT,#lidB{position:absolute;left:-20px;width:580px;height:500px;background:#000;}
+  #lidT{top:-500px;border-radius:0 0 50% 50%/0 0 120px 120px;}
+  #lidB{top:960px;border-radius:50% 50% 0 0/120px 120px 0 0;}
+</style></head>
+<body><div id="stage">
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="dream"><div class="lab">꿈속</div></div>
+<div id="rew"></div>
+<div id="lidT"></div><div id="lidB"></div>
+<div id="badge" class="safe"><span>만약에 EP03</span></div>
+<div id="title" class="safe">만약 꿈에서 <span class="y">모두가</span><br>나를 쳐다본다면?</div>
+<div id="counter"><div class="lab">나를 보는 사람</div><div class="num">80억<small>명</small></div><div class="sub">+ 외계인</div></div>
+<div id="pop"></div>
+<div id="sub" class="safe"></div>
+<div id="end"><div class="card"><div class="ep">만약에 EP03</div><div class="share">수업 시간마다 침 흘리며<br>자는 친구한테 보내기</div><div class="next">다음 만약에는 내일 저녁 7시</div></div></div>
+<div id="flash"></div>
+</div>
+<script src="../../engine/engine.js"></script>
+<script>
+'use strict';
+const { M4, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, drawMini, basis } = ME;
+const E = MiniEngine(document.getElementById('c'));
+const m = E.meshes, D = E.draw;
+const DURATION = 19.5;
+const FONT = "'Noto Sans CJK KR','Noto Sans KR',sans-serif";
+const SHIRTS = ['#4f8cff', '#ffc94d', '#2fbf71', '#b46cff', '#ff9f1c', '#20c4d4', '#e05d5d', '#7a8cff', '#9ccc65', '#ff7ab6'];
+const HAIRS = ['#1d1d22', '#3b2a20', '#5a3b28', '#1d1d22', '#6b4a2f', '#2a2a33'];
+function blinkAt(t, off) { const p = (t + off) % 3.1; return p < 0.12 ? Math.sin(p / 0.12 * Math.PI) : 0; }
+function shadow(x, y, z, r, a) { D(m.disc, M4.chain(M4.T(x, y + 0.01, z), M4.RX(-Math.PI / 2), M4.S(r)), [0, 0, 0], { alpha: a === undefined ? 0.25 : a, spec: 0, em: 1 }); }
+const yawTo = (from, to) => Math.atan2(to[0] - from[0], to[2] - from[2]);
+const wrapA = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+const HERO = { shirt: '#ff6b81', hair: 'bob' };
+
+// ---------------- textures ----------------
+const TX = {
+  earth: E.texture((c, w, h) => {
+    c.fillStyle = '#3d8bff'; c.fillRect(0, 0, w, h);
+    const R = rng(21);
+    for (let i = 0; i < 26; i++) { c.fillStyle = i % 5 === 0 ? '#e9f1ff' : (i % 3 ? '#5fcf6a' : '#8ad16b'); c.beginPath(); c.ellipse(R() * w, h * 0.15 + R() * h * 0.7, 20 + R() * 60, 12 + R() * 30, R() * 3, 0, 7); c.fill(); }
+    c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, 14); c.fillRect(0, h - 14, w, 14);
+  }, 512, 256),
+  winFace: E.texture((c, w, h) => {
+    c.fillStyle = '#262a40'; c.fillRect(0, 0, w, h);
+    const R = rng(8);
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      const X = x * 64 + 8, Y = y * 64 + 8;
+      c.fillStyle = R() < 0.15 ? '#3b4160' : '#ffd86b'; c.fillRect(X, Y, 48, 46);
+      if (c.fillStyle !== '#3b4160') {
+        c.fillStyle = '#f3cdb8'; c.beginPath(); c.arc(X + 24, Y + 30, 13, 0, 7); c.fill();
+        c.fillStyle = '#1d1d22'; c.beginPath(); c.arc(X + 24, Y + 26, 13, Math.PI, 0); c.fill();
+        c.beginPath(); c.arc(X + 19, Y + 32, 2.6, 0, 7); c.arc(X + 29, Y + 32, 2.6, 0, 7); c.fill();
+      }
+    }
+  }, 256, 256, true),
+  eye: E.texture((c, w, h) => {
+    c.fillStyle = '#1b1d2e'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(w / 2, h / 2, w * 0.42, h * 0.36, 0, 0, 7); c.fill();
+    c.fillStyle = '#3a2618'; c.beginPath(); c.arc(w / 2, h / 2, h * 0.27, 0, 7); c.fill();
+    c.fillStyle = '#000'; c.beginPath(); c.arc(w / 2, h / 2, h * 0.14, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(w / 2 + 14, h / 2 - 14, 9, 0, 7); c.fill();
+  }, 256, 128),
+  board: E.texture((c, w, h) => {
+    c.fillStyle = '#2f5b46'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 5; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(40, 60); c.lineTo(200, 60); c.moveTo(40, 110); c.lineTo(300, 110); c.moveTo(40, 160); c.lineTo(160, 160);
+    c.moveTo(330, 70); c.quadraticCurveTo(400, 20, 460, 90); c.moveTo(320, 170); c.lineTo(470, 170); c.stroke();
+    c.font = `900 54px ${FONT}`; c.fillStyle = 'rgba(255,255,255,.85)'; c.fillText('x² + 2x', 330, 140);
+  }, 512, 256),
+  tunnel: E.texture((c, w, h) => {
+    c.fillStyle = '#1d2236'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#ffe9a8'; for (let i = 0; i < 4; i++) c.fillRect(i * 64 + 10, h * 0.45, 26, 6);
+  }, 256, 64, true),
+  ad: E.texture((c, w, h) => {
+    const cols = ['#ffd23f', '#5ec8ff', '#ff8fab', '#9be564'];
+    for (let i = 0; i < 4; i++) { c.fillStyle = cols[i]; c.fillRect(i * w / 4, 0, w / 4 - 4, h); c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(i * w / 4 + 10, 12, w / 4 - 30, 8); c.fillRect(i * w / 4 + 10, 28, w / 8, 6); }
+  }, 512, 64, true),
+};
+
+// ---------------- data ----------------
+const STARS = []; { const R = rng(5); for (let i = 0; i < 160; i++) { const a = R() * 6.28, b = (R() - 0.3) * 2.2, r = 70 + R() * 30; STARS.push([Math.cos(a) * Math.cos(b) * r, Math.sin(b) * r + 10, Math.sin(a) * Math.cos(b) * r, 0.2 + R() * 0.35]); } }
+const EARTH_R = 5;
+const EARTH_P = []; { const R = rng(17); for (let i = 0; i < 520; i++) { const th = 0.16 + Math.pow(R(), 0.8) * 1.25, ph = R() * 6.283; EARTH_P.push({ n: [Math.sin(th) * Math.sin(ph), Math.cos(th), Math.sin(th) * Math.cos(ph)], shirt: SHIRTS[i % 10], hair: HAIRS[i % 6], ra: (R() - 0.5) * 5, s: 0.26 + R() * 0.06 }); } }
+const UFOS = [{ p: [-1.35, 7.35, 0.9], s: 1.0, ph: 0 }, { p: [1.45, 7.6, 0.6], s: 1.05, ph: 1.7 }, { p: [0.15, 8.6, -2.6], s: 1.3, ph: 3.1 }];
+const CITY_B = []; { const R = rng(41); for (let i = 0; i < 46; i++) { const a = i / 46 * 6.283 + R() * 0.1, r = 13 + R() * 26; CITY_B.push({ x: Math.sin(a) * r, z: Math.cos(a) * r, w: 4 + R() * 4, d: 4 + R() * 4, h: 8 + R() * 26 }); } }
+const CITY_P = []; { const R = rng(43); for (let i = 0; i < 210; i++) { const a = R() * 6.283, r = 1.6 + Math.sqrt(R()) * 9.5; CITY_P.push({ x: Math.sin(a) * r, z: Math.cos(a) * r, shirt: SHIRTS[i % 10], hair: HAIRS[i % 6], ra: (R() - 0.5) * 4 }); } }
+const PLAT_P = []; { const R = rng(47); for (let ix = 0; ix < 7; ix++) for (let iz = 0; iz < 11; iz++) PLAT_P.push({ x: 2.3 + ix * 0.62 + (R() - 0.5) * 0.2, z: -3.2 + iz * 0.6 + (ix % 2) * 0.3, shirt: SHIRTS[(ix * 11 + iz) % 10], hair: HAIRS[(ix + iz) % 6], s: 1.45 + R() * 0.25, ra: (R() - 0.5) * 4 }); }
+
+// ---------------- SPACE ----------------
+function heroLookTarget() { return [0, 6.6, 3.5]; }
+function drawSpace(st, look, t) {
+  for (const s of STARS) D(m.sphere, M4.chain(M4.T(s[0], s[1], s[2]), M4.S(s[3])), '#ffffff', { em: 1, spec: 0 });
+  D(m.sphere, M4.chain(M4.RY(st * 0.03), M4.S(EARTH_R * 2)), [1, 1, 1], { tex: TX.earth, spec: 0.5 });
+  D(m.sphere, M4.S(EARTH_R * 2.08), '#9fd0ff', { alpha: 0.18, em: 0.6, spec: 0 });
+  // crowd on the earth: look at hero (cheat toward camera side)
+  const tgt = heroLookTarget();
+  for (let i = 0; i < EARTH_P.length; i++) {
+    const P = EARTH_P[i]; const pos = P.n.map(v => v * EARTH_R * 0.995);
+    const d = [tgt[0] - pos[0], tgt[1] - pos[1], tgt[2] - pos[2]];
+    const dn = d[0] * P.n[0] + d[1] * P.n[1] + d[2] * P.n[2];
+    const tl = Math.hypot(d[0] - P.n[0] * dn, d[1] - P.n[1] * dn, d[2] - P.n[2] * dn);
+    const pitch = Math.atan2(dn, tl);
+    const k = look(i);
+    drawMini(E, M4.mul(basis(pos, P.n, d, P.s), M4.RY((1 - k) * P.ra)), { shirt: P.shirt, hair: P.hair, pitch: clamp(pitch, 0, 1.0) * k });
+  }
+}
+function ufoDrop(st) { return 6 * Math.pow(1 - smooth(9.3, 10.4, st), 1.5); }
+function drawUfos(st, t, selfie) {
+  UFOS.forEach((U, i) => {
+    const y = U.p[1] + ufoDrop(st) * (1 + i * 0.3) + Math.sin(t * 2.2 + U.ph) * 0.06;
+    const c = [U.p[0], y, U.p[2]];
+    const tilt = Math.sin(t * 1.7 + U.ph) * 0.08;
+    const B = M4.chain(M4.T(c[0], c[1], c[2]), M4.RZ(tilt), M4.S(U.s));
+    D(m.sphere, M4.chain(B, M4.S(1.25, 0.28, 1.25)), '#c9d3e0', { spec: 1.0 });
+    D(m.sphere, M4.chain(B, M4.T(0, -0.06, 0), M4.S(0.9, 0.22, 0.9)), '#7e8aa0', { spec: 0.8 });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283 + t * 3; D(m.sphere, M4.chain(B, M4.T(Math.sin(a) * 0.58, -0.02, Math.cos(a) * 0.58), M4.S(0.09)), k % 2 ? '#ffe14d' : '#ff6b81', { em: 1 }); }
+    // alien inside dome, facing hero/camera
+    const look = yawTo(c, [0, 6, 4]);
+    const A = M4.chain(B, M4.T(0, 0.1, 0), M4.RY(look));
+    D(m.sphere, M4.chain(A, M4.T(0, 0.12, 0), M4.S(0.3, 0.3, 0.26)), '#7be07b', { spec: 0.5 });
+    const H = M4.chain(A, M4.T(0, 0.38, 0.04));
+    D(m.sphere, M4.mul(H, M4.S(0.46, 0.4, 0.4)), '#8ef08a', { spec: 0.6 });
+    for (const s of [-1, 1]) {
+      D(m.sphere, M4.chain(H, M4.T(0.11 * s, 0.02, 0.16), M4.RZ(0.5 * s), M4.S(0.15, 0.1, 0.06)), '#101014', { spec: 1 });
+      D(m.sphere, M4.chain(H, M4.T(0.11 * s + 0.03, 0.05, 0.19), M4.S(0.03)), '#ffffff', { em: 1 });
+      D(m.cyl, M4.chain(H, M4.T(0.09 * s, 0.24, 0), M4.RZ(-0.3 * s), M4.S(0.02, 0.18, 0.02)), '#7be07b');
+      D(m.sphere, M4.chain(H, M4.T(0.14 * s, 0.33, 0), M4.S(0.06)), '#ff6b81', { em: 0.5 });
+    }
+    if (i === 1 && selfie > 0) { // selfie arm toward hero, phone in front of hero's face
+      const sh = M4.apply(M4.mul(A, M4.T(-0.2, 0.15, 0.08)), [0, 0, 0]);
+      const goal = [0.45, 6.75, 0.75];
+      const end = [lerp(sh[0], goal[0], selfie), lerp(sh[1], goal[1], selfie), lerp(sh[2], goal[2], selfie)];
+      const dir = [end[0] - sh[0], end[1] - sh[1], end[2] - sh[2]]; const L = Math.hypot(...dir) + 0.001;
+      const mid = [(sh[0] + end[0]) / 2, (sh[1] + end[1]) / 2, (sh[2] + end[2]) / 2];
+      D(m.cyl, M4.mul(basis(mid, dir, [0, 0, 1]), M4.S(0.07, L, 0.07)), '#7be07b');
+      D(m.sphere, M4.chain(M4.T(end[0], end[1], end[2]), M4.S(0.11)), '#8ef08a');
+      D(m.box, M4.chain(M4.T(end[0] + 0.02, end[1] + 0.12, end[2]), M4.RY(-0.5), M4.S(0.18, 0.32, 0.03)), '#22252b', { spec: 1 });
+    }
+    D(m.sphere, M4.chain(B, M4.T(0, 0.18, 0), M4.S(0.78, 0.72, 0.78)), '#bfe6ff', { alpha: 0.28, spec: 1 });
+    D(m.cone, M4.chain(B, M4.T(0, -0.75, 0), M4.S(0.9, 1.2, 0.9)), '#fff3a0', { alpha: 0.1, em: 1, spec: 0 });
+  });
+}
+function drawSpaceHero(st, t, cold) {
+  const hp = [0, EARTH_R - 0.02, 0];
+  const wave = Math.sin(t * 12);
+  let o = { surprise: 1, mouth: 1.0, armL: [2.0 + wave * 0.2, 0.3], armR: [2.0 - wave * 0.2, 0.3], headPitch: -0.12 };
+  if (st >= 11.0 && st < 12.0) { o = { surprise: 0.6, mouth: 0.7, browTilt: 0.2, armL: [0.5, 0.3], armR: [2.6, 0.2], headYaw: 0.35, headPitch: -0.1 }; }
+  drawCharacter(E, M4.chain(M4.T(hp[0], hp[1], hp[2])), Object.assign({}, HERO, { bodyYaw: 0.12, blink: 0 }, o));
+  shadow(0, EARTH_R - 0.02, 0, 0.6, 0.3);
+}
+
+// ---------------- SUBWAY ----------------
+const SEATS = []; {
+  const zs = [-1.1, -1.75, -2.4, -3.05, -4.2, -4.85, -5.5, -6.6, -7.25, -7.9];
+  for (const side of [-1, 1]) zs.forEach((z, k) => SEATS.push({ x: side * 1.17, z, side, shirt: SHIRTS[(k * 3 + (side > 0 ? 1 : 0)) % 10], hair: k % 3 === 0 ? 'bob' : 'short', hc: HAIRS[(k + (side > 0 ? 2 : 0)) % 6] }));
+}
+// who turns when: grandma (left -1.1) first; then pairs
+SEATS.forEach((s, i) => { s.turn = 3.8 + (i % 7) * 0.025; });
+const GRANNY = SEATS[0]; GRANNY.turn = 1.8; GRANNY.granny = true;
+SEATS[11].turn = 3.0; SEATS[2].turn = 3.0;                 // 2명 (hero looks left side)
+SEATS[12].turn = 3.4; SEATS[13].turn = 3.4;                // 4명
+SEATS[1].turn = 3.4;
+const DOOR_Z = 0.15;
+function drawSubway(t, moving) {
+  const L0 = 3.6, L1 = -10;
+  const cz = (L0 + L1) / 2, len = L0 - L1;
+  D(m.box, M4.chain(M4.T(0, -0.05, cz), M4.S(2.9, 0.1, len)), '#9aa3ad', { spec: 0.3 });
+  D(m.box, M4.chain(M4.T(0, 0.004, cz), M4.S(0.9, 0.01, len)), '#b8c0c9', { spec: 0.2 });
+  D(m.box, M4.chain(M4.T(0, 2.45, cz), M4.S(2.9, 0.1, len)), '#f4f5f7', { em: 0.3 });
+  for (const x of [-0.55, 0.55]) D(m.box, M4.chain(M4.T(x, 2.39, cz), M4.S(0.18, 0.03, len)), '#ffffff', { em: 1 });
+  D(m.box, M4.chain(M4.T(0, 1.2, L1), M4.S(2.9, 2.5, 0.1)), '#dfe3e8');
+  D(m.box, M4.chain(M4.T(0, 1.0, L1 + 0.06), M4.S(0.8, 1.9, 0.04)), '#b9c3cf', { spec: 0.8 });
+  const scroll = moving ? t * 6 : 0;
+  for (const side of [-1, 1]) {
+    const x = side * 1.45;
+    // lower wall, window band, upper wall
+    D(m.box, M4.chain(M4.T(x, 0.45, cz), M4.S(0.08, 0.9, len)), '#e8ebef');
+    D(m.box, M4.chain(M4.T(x, 2.15, cz), M4.S(0.08, 0.6, len)), '#e8ebef');
+    D(m.box, M4.chain(M4.T(x - side * 0.05, 1.98, cz), M4.S(0.02, 0.18, len)), [1, 1, 1], { tex: TX.ad, tr: [len / 2, 1], em: 0.4 });
+    // outside: tunnel (moving) or platform
+    if (side < 0 || moving) D(m.box, M4.chain(M4.T(side * 1.9, 1.3, cz), M4.S(0.05, 1.2, len)), [1, 1, 1], { tex: TX.tunnel, tr: [len / 2 + 0.0001, 1], em: 0.9 });
+    D(m.box, M4.chain(M4.T(x, 1.33, cz), M4.S(0.03, 0.86, len)), '#bfe6ff', { alpha: side > 0 && !moving ? 0.12 : 0.35, spec: 1 });
+    // window pillars
+    for (let z = L0 - 0.5; z > L1; z -= 1.6) if (!(side > 0 && Math.abs(z - DOOR_Z) < 1.0)) D(m.box, M4.chain(M4.T(x, 1.33, z), M4.S(0.1, 0.9, 0.18)), '#e8ebef');
+    // bench
+    D(m.box, M4.chain(M4.T(side * 1.2, 0.22, cz - 1.5), M4.S(0.5, 0.44, len - 3)), '#9aa3ad');
+    D(m.box, M4.chain(M4.T(side * 1.17, 0.47, cz - 1.5), M4.S(0.5, 0.1, len - 3)), '#3f6fd1', { spec: 0.5 });
+    D(m.box, M4.chain(M4.T(side * 1.4, 0.75, cz - 1.5), M4.S(0.08, 0.5, len - 3)), '#3f6fd1', { spec: 0.5 });
+    // straps
+    for (let z = 2.6; z > L1 + 0.5; z -= 0.55) {
+      const sw = Math.sin(t * 2 + z) * 0.05 * (moving ? 1 : 0.3);
+      const S0 = M4.chain(M4.T(side * 0.62, 2.3, z), M4.RX(sw));
+      D(m.box, M4.chain(S0, M4.T(0, -0.13, 0), M4.S(0.03, 0.26, 0.03)), '#e6e6e6');
+      D(m.cyl, M4.chain(S0, M4.T(0, -0.32, 0), M4.RX(Math.PI / 2), M4.S(0.16, 0.025, 0.16)), '#ffd23f');
+    }
+    D(m.cyl, M4.chain(M4.T(side * 0.62, 2.3, cz), M4.RX(Math.PI / 2), M4.S(0.04, len, 0.04)), '#c9ced6', { spec: 1 });
+  }
+  for (const z of [1.2, -3.6, -7.0]) for (const s of [-1, 1]) D(m.cyl, M4.chain(M4.T(s * 0.9, 1.2, z), M4.S(0.05, 2.4, 0.05)), '#ffd23f', { spec: 0.9 });
+  // right side door
+  const open = smooth(4.95, 5.35, t) * (moving ? 0 : 1);
+  for (const s of [-1, 1]) D(m.box, M4.chain(M4.T(1.45, 1.05, DOOR_Z + s * (0.32 + open * 0.62)), M4.S(0.06, 2.1, 0.62)), '#cfd6de', { spec: 0.8 });
+}
+function drawPlatform(t) {
+  D(m.box, M4.chain(M4.T(5.5, -0.05, 0), M4.S(8, 0.1, 14)), '#c7c2b8', { spec: 0.2 });
+  D(m.box, M4.chain(M4.T(1.75, 0.0, 0), M4.S(0.3, 0.02, 14)), '#ffd23f', { em: 0.3 });
+  D(m.box, M4.chain(M4.T(9.0, 1.5, 0), M4.S(0.2, 3, 14)), '#e9e1cf');
+  D(m.box, M4.chain(M4.T(5.5, 3.0, 0), M4.S(8, 0.1, 14)), '#f2f2f2', { em: 0.4 });
+  const tgt = [0, 1.45, 0.4];
+  PLAT_P.forEach((P, i) => {
+    const k = smooth(5.0 + (i % 9) * 0.02, 5.2 + (i % 9) * 0.02, t);
+    const yaw = yawTo([P.x, 0, P.z], tgt) + (1 - k) * P.ra;
+    const pitch = Math.atan2(tgt[1] - P.s * 0.85, Math.hypot(P.x - tgt[0], P.z - tgt[2]));
+    drawMini(E, M4.chain(M4.T(P.x, 0, P.z), M4.RY(yaw), M4.S(P.s)), { shirt: P.shirt, hair: P.hair, pitch: pitch * k });
+  });
+}
+function heroSubwayOpts(t) {
+  // head turns: 3.0 left, 3.4 right, 3.8 whip, 4.8 to door (+x)
+  let yaw = 0;
+  if (t >= 2.95 && t < 3.35) yaw = 0.9 * smooth(2.95, 3.12, t);
+  else if (t >= 3.35 && t < 3.75) yaw = lerp(0.9, -0.9, smooth(3.35, 3.52, t));
+  else if (t >= 3.75 && t < 4.75) yaw = lerp(-0.9, 0.0, smooth(3.75, 3.9, t));
+  else if (t >= 4.75) yaw = 1.25 * smooth(4.75, 4.95, t);
+  const sur = t < 1.75 ? 0.4 : smooth(1.85, 2.05, t);
+  return { headYaw: yaw, surprise: clamp(sur, 0, 1), mouth: 0.15 + sur * 0.8, armR: [2.75, 0.25], armL: [0.3, 0.15], blink: sur > 0.5 ? 0 : blinkAt(t, 0.4) };
+}
+function drawSubwayPeople(t) {
+  const hero = [0, 1.5, 0];
+  drawCharacter(E, M4.T(0, 0, 0), Object.assign({}, HERO, heroSubwayOpts(t), { bodyYaw: 0 }));
+  shadow(0, 0, 0, 0.6);
+  SEATS.forEach((S, i) => {
+    const body = S.side < 0 ? Math.PI / 2 : -Math.PI / 2;
+    const k = smooth(S.turn, S.turn + 0.15, t);
+    const want = clamp(wrapA(yawTo([S.x, 1.4, S.z], [hero[0], 1.4, hero[2] + 0.8]) - body), -1.35, 1.35);
+    const base = M4.T(S.x, 0.06, S.z);
+    const o = S.granny ? { shirt: '#9b6bd1', hair: 'short', hairColor: '#d6d6d6' } : { shirt: S.shirt, hair: S.hair, hairColor: S.hc };
+    drawCharacter(E, base, Object.assign(o, { sit: 1, bodyYaw: body, headYaw: want * k, headPitch: -0.05 * k, surprise: S.granny ? 0 : k * 0.6, mouth: S.granny ? 0.05 : k * 0.4, blink: blinkAt(t, i * 0.37), armL: [0.2, 0.9], armR: [0.2, 0.9] }));
+    if (S.granny) { // dog on lap
+      const L = M4.chain(base, M4.RY(body), M4.T(0, 0.62, 0.32));
+      D(m.sphere, M4.chain(L, M4.S(0.36, 0.26, 0.42)), '#ffffff', { spec: 0.4 });
+      const dk = smooth(1.85, 2.0, t);
+      const Hd = M4.chain(L, M4.T(0, 0.2, 0.2), M4.RY(-0.9 * dk));
+      D(m.sphere, M4.mul(Hd, M4.S(0.26)), '#ffffff', { spec: 0.4 });
+      for (const s of [-1, 1]) { D(m.sphere, M4.chain(Hd, M4.T(0.1 * s, 0.06, -0.02), M4.S(0.08, 0.14, 0.06)), '#d9c3a5'); D(m.sphere, M4.chain(Hd, M4.T(0.05 * s, 0.03, 0.12), M4.S(0.035)), '#111'); }
+      D(m.sphere, M4.chain(Hd, M4.T(0, -0.02, 0.14), M4.S(0.04)), '#222');
+    }
+  });
+}
+
+// ---------------- CITY ----------------
+function drawCity(t) {
+  D(m.box, M4.chain(M4.T(0, -0.1, 0), M4.S(200, 0.2, 200)), '#3a3d4a', { spec: 0.1 });
+  D(m.cyl, M4.chain(M4.T(0, 0.0, 0), M4.S(24, 0.04, 24)), '#4c5060', { spec: 0.2 });
+  D(m.cyl, M4.chain(M4.T(0, 0.2, 0), M4.S(2.2, 0.4, 2.2)), '#6c7182', { spec: 0.4 });
+  for (const B of CITY_B) {
+    D(m.box, M4.chain(M4.T(B.x, B.h / 2, B.z), M4.RY(Math.atan2(B.x, B.z)), M4.S(B.w, B.h, B.d)), [1, 1, 1], { tex: TX.winFace, tr: [B.w / 4, B.h / 4], em: 0.75, spec: 0.1 });
+  }
+  // billboard eye on a building facing the plaza
+  const bb = CITY_B[0]; const a = Math.atan2(bb.x, bb.z);
+  D(m.quad, M4.chain(M4.T(bb.x * 0.86, bb.h * 0.7, bb.z * 0.86), M4.RY(a + Math.PI), M4.S(9, 4.5, 1)), [1, 1, 1], { tex: TX.eye, em: 1 });
+  const tgt = [0, 1.8, 0];
+  CITY_P.forEach((P, i) => {
+    const k = smooth(6.25 + (i % 11) * 0.03, 6.45 + (i % 11) * 0.03, t);
+    const yaw = yawTo([P.x, 0, P.z], tgt) + (1 - k) * P.ra;
+    drawMini(E, M4.chain(M4.T(P.x, 0, P.z), M4.RY(yaw), M4.S(1.3)), { shirt: P.shirt, hair: P.hair, pitch: 0.35 * k });
+  });
+  drawCharacter(E, M4.T(0, 0.4, 0), Object.assign({}, HERO, { bodyYaw: 0, surprise: 1, mouth: 1, armL: [2.2 + Math.sin(t * 13) * 0.2, 0.2], armR: [2.2 - Math.sin(t * 13) * 0.2, 0.2], headYaw: Math.sin(t * 5) * 0.3 }));
+}
+
+// ---------------- CLASSROOM ----------------
+const HERO_SEAT = [0.65, 1.2];
+const DESKS = []; { const xs = [-3.25, -1.95, -0.65, 0.65, 1.95, 3.25], zs = [-3.0, -1.6, -0.2, 1.2, 2.6]; let k = 0; for (const z of zs) for (const x of xs) { DESKS.push({ x, z, hero: x === HERO_SEAT[0] && z === HERO_SEAT[1], shirt: SHIRTS[k % 10], hair: k % 2 ? 'bob' : 'short', hc: HAIRS[k % 6], k }); k++; } }
+DESKS.push({ x: -3.25, z: 4.0, shirt: '#9ccc65', hair: 'bob', hc: '#3b2a20', k: 31 });
+const NEXT_P = []; { const R = rng(61); for (let r = 0; r < 3; r++) for (let i = 0; i < 16; i++) NEXT_P.push({ z: -4.6 + i * 0.6 + (r % 2) * 0.3 + (R() - 0.5) * 0.1, y: 0.95 + r * 0.42, shirt: SHIRTS[(i + r * 5) % 10], hair: HAIRS[(i + r) % 6], born: 16.62 + R() * 0.25, s: 0.62 + R() * 0.08 }); }
+function drawDesk(x, z) {
+  D(m.box, M4.chain(M4.T(x, 0.74, z - 0.45), M4.S(0.95, 0.05, 0.55)), '#d9a86c', { spec: 0.5 });
+  D(m.box, M4.chain(M4.T(x, 0.45, z - 0.2), M4.S(0.9, 0.5, 0.03)), '#8a96a3');
+  for (const s of [-1, 1]) D(m.box, M4.chain(M4.T(x + s * 0.42, 0.37, z - 0.45), M4.S(0.04, 0.74, 0.5)), '#8a96a3');
+  D(m.box, M4.chain(M4.T(x, 0.43, z + 0.05), M4.S(0.5, 0.05, 0.45)), '#d9a86c');
+  D(m.box, M4.chain(M4.T(x, 0.75, z + 0.28), M4.S(0.5, 0.6, 0.04)), '#d9a86c');
+}
+function heroClassOpts(t) {
+  const wake = smooth(12.85, 13.35, t);
+  let o = { sit: 1, bodyYaw: Math.PI, surprise: wake, mouth: 0.25 + wake * 0.5, headPitch: lerp(1.0, -0.05, wake), browTilt: 0, blink: 0, armL: [0.55, 1.25], armR: [0.55, 1.25] };
+  if (t >= 15.4) o.mouth = 0.15;
+  if (t >= 15.95) { const w = smooth(16.0, 16.18, t); o.headYaw = -1.45 * w; o.headRoll = 0; o.surprise = 1; o.mouth = 0.5; }
+  if (t >= 16.75) { const d = smooth(16.75, 16.9, t); o.eyeDots = d; o.surprise = 1 - d; o.mouth = 0.05; o.browTilt = 0.3 * d; o.headYaw = -1.45 + Math.sin((t - 16.75) * 3) * 0.05; }
+  return o;
+}
+function blocks(x, z) { // student sits between camera and the shot's look point
+  const a = CAM.pos, b = CAM.look; const dx = b[0] - a[0], dz = b[2] - a[2]; const L2 = dx * dx + dz * dz;
+  const u = ((x - a[0]) * dx + (z - a[2]) * dz) / L2; if (u < 0 || u > 0.85) return false;
+  return Math.hypot(a[0] + dx * u - x, a[2] + dz * u - z) < 0.6;
+}
+function drawClassroom(t) {
+  D(m.box, M4.chain(M4.T(0, -0.05, -0.2), M4.S(9.8, 0.1, 11)), '#c99e6b', { spec: 0.3 });
+  for (let i = 0; i < 10; i++) D(m.box, M4.chain(M4.T(-4.4 + i, 0.002, -0.2), M4.S(0.02, 0.01, 11)), '#b48a5a', { spec: 0 });
+  D(m.box, M4.chain(M4.T(0, 3.1, -0.2), M4.S(9.8, 0.1, 11)), '#fbf8f0', { em: 0.3 });
+  for (const z of [-3, 0, 3]) D(m.box, M4.chain(M4.T(0, 3.04, z), M4.S(4, 0.04, 0.3)), '#ffffff', { em: 1 });
+  // front wall + board
+  D(m.box, M4.chain(M4.T(0, 1.5, -5.7), M4.S(9.8, 3.2, 0.1)), '#f3ead7');
+  D(m.box, M4.chain(M4.T(0, 1.65, -5.62), M4.S(5.4, 1.5, 0.06)), '#6b4a2f');
+  D(m.quad, M4.chain(M4.T(0, 1.65, -5.58), M4.S(5.2, 1.35, 1)), [1, 1, 1], { tex: TX.board, em: 0.2 });
+  D(m.box, M4.chain(M4.T(0, 0.9, -5.5), M4.S(5.4, 0.05, 0.12)), '#8a6a4a');
+  // back wall
+  D(m.box, M4.chain(M4.T(0, 1.5, 5.3), M4.S(9.8, 3.2, 0.1)), '#f3ead7');
+  // left wall with outside windows
+  D(m.box, M4.chain(M4.T(-4.9, 0.5, -0.2), M4.S(0.1, 1.0, 11)), '#f3ead7');
+  D(m.box, M4.chain(M4.T(-4.9, 2.8, -0.2), M4.S(0.1, 0.6, 11)), '#f3ead7');
+  D(m.box, M4.chain(M4.T(-5.3, 1.6, -0.2), M4.S(0.1, 2.0, 11)), '#9fd4ff', { em: 0.9 });
+  for (let z = -5; z <= 5; z += 2) D(m.box, M4.chain(M4.T(-4.9, 1.75, z), M4.S(0.12, 1.5, 0.12)), '#e8ebef');
+  // right wall: hallway windows (x=4.9)
+  D(m.box, M4.chain(M4.T(4.9, 0.4, -0.2), M4.S(0.1, 0.8, 11)), '#f3ead7');
+  D(m.box, M4.chain(M4.T(4.9, 2.75, -0.2), M4.S(0.1, 0.7, 11)), '#f3ead7');
+  D(m.box, M4.chain(M4.T(6.2, 1.5, -0.2), M4.S(0.1, 3.0, 11)), '#e7e2d4');
+  D(m.box, M4.chain(M4.T(5.5, -0.04, -0.2), M4.S(1.3, 0.1, 11)), '#b9b2a3');
+  for (let z = -5.1; z <= 5; z += 1.7) D(m.box, M4.chain(M4.T(4.9, 1.6, z), M4.S(0.12, 1.6, 0.1)), '#e8ebef');
+  // next-class faces pressed on the hallway glass (appear at 16.6)
+  if (t >= 16.55) {
+    const tgt = [HERO_SEAT[0], 1.45, HERO_SEAT[1]];
+    for (const P of NEXT_P) {
+      const s = clamp(easeOutBack((t - P.born) / 0.22), 0, 1.2); if (s <= 0) continue;
+      const pos = [5.12, P.y, P.z];
+      const yaw = yawTo(pos, tgt);
+      const H = M4.chain(M4.T(pos[0], pos[1], pos[2]), M4.RY(yaw), M4.S(P.s * s));
+      D(m.sphere, M4.chain(H, M4.T(0, -0.5, 0), M4.S(0.5, 0.6, 0.4)), P.shirt);
+      D(m.sphere, M4.mul(H, M4.S(0.62, 0.6, 0.55)), '#f3cdb8', { spec: 0.25 });
+      D(m.hemi, M4.chain(H, M4.T(0, 0.02, -0.02), M4.RX(-0.3), M4.S(0.64)), P.hair, { spec: 0.5 });
+      for (const sx of [-1, 1]) { D(m.sphere, M4.chain(H, M4.T(0.11 * sx, -0.02, 0.26), M4.S(0.09, 0.13, 0.05)), '#111116', { spec: 0.9 }); D(m.sphere, M4.chain(H, M4.T(0.11 * sx + 0.02, 0.02, 0.285), M4.S(0.03)), '#fff', { em: 1 }); }
+      D(m.sphere, M4.chain(H, M4.T(0, -0.16, 0.26), M4.S(0.1, 0.06, 0.04)), '#7a2230');
+    }
+  }
+  D(m.box, M4.chain(M4.T(4.9, 1.6, -0.2), M4.S(0.03, 1.6, 11)), '#cfeeff', { alpha: 0.18, spec: 1 });
+  // desks + students
+  const hero = [HERO_SEAT[0], 1.45, HERO_SEAT[1]];
+  for (const Dk of DESKS) {
+    drawDesk(Dk.x, Dk.z);
+    if (Dk.hero) continue;
+    if (Math.hypot(CAM.pos[0] - Dk.x, CAM.pos[1] - 1.4, CAM.pos[2] - Dk.z) < 0.8 || blocks(Dk.x, Dk.z)) continue;
+    const body = Math.PI; // facing front (-z)
+    const want = wrapA(yawTo([Dk.x, 1.4, Dk.z], hero) - body);
+    const twist = clamp(want, -2.8, 2.8);
+    const bodyT = twist * 0.45, headT = clamp(twist - bodyT, -1.4, 1.4);
+    const look = t >= 12.8 ? 1 : 0;
+    const pitchTo = Math.atan2(hero[1] - 1.45, Math.hypot(Dk.x - hero[0], Dk.z - hero[2]) + 0.01);
+    drawCharacter(E, M4.T(Dk.x, 0.0, Dk.z), { shirt: Dk.shirt, hair: Dk.hair, hairColor: Dk.hc, sit: 1, bodyYaw: body + bodyT * look, headYaw: headT * look, headPitch: -pitchTo * look, surprise: 0.2, mouth: 0.08, blink: blinkAt(t, Dk.k * 0.29), armL: [0.4, 1.1], armR: [0.4, 1.1] });
+  }
+  // notebook on hero desk
+  D(m.box, M4.chain(M4.T(HERO_SEAT[0], 0.775, HERO_SEAT[1] - 0.45), M4.RY(0.15), M4.S(0.5, 0.02, 0.36)), '#ffffff', { spec: 0.2 });
+  D(m.box, M4.chain(M4.T(HERO_SEAT[0], 0.787, HERO_SEAT[1] - 0.45), M4.RY(0.15), M4.S(0.01, 0.005, 0.36)), '#9aa3ad');
+  // hero
+  const o = heroClassOpts(t);
+  const lean = 1 - smooth(12.85, 13.35, t);
+  const base = M4.chain(M4.T(HERO_SEAT[0], 0.0, HERO_SEAT[1]), M4.RY(o.bodyYaw), M4.T(0, 0.45, 0), M4.RX(lean * 0.55), M4.T(0, -0.45, 0));
+  const pov = (t < 14.6) || (t >= 16.6 && t < 17.3) || t >= 18.0;
+  const Hd = pov ? null : drawCharacter(E, base, Object.assign({}, HERO, o, { bodyYaw: 0 }));
+  // drool + notebook marks on cheek
+  if (Hd) D(m.sphere, M4.chain(Hd, M4.T(0.1, -0.33, 0.33), M4.S(0.045, 0.07, 0.04)), '#bfe6ff', { alpha: 0.75, spec: 1 });
+  if (Hd) for (let i = 0; i < 3; i++) D(m.box, M4.chain(Hd, M4.T(-0.26, -0.1 - i * 0.05, 0.32), M4.RY(-0.6), M4.S(0.14, 0.012, 0.01)), '#c98a7a');
+  // teacher
+  let tp = [-0.2, 0, -4.4], tyaw = 0.2;
+  if (t >= 14.6) { tp = [-0.45, 0, 2.05]; tyaw = yawTo(tp, hero); }
+  const talking = t >= 15.4 && t < 16.08;
+  const Th = drawCharacter(E, M4.T(tp[0], tp[1], tp[2]), { shirt: '#6f7f99', vest: '#3f4a5e', hair: 'short', hairColor: '#2b2b2b', pants: '#3a3a44', bodyYaw: t >= 14.6 ? tyaw : yawTo(tp, hero), headYaw: 0, headPitch: t >= 14.6 ? 0.12 : 0.03, mouth: talking ? 0.12 + 0.3 * Math.abs(Math.sin((t - 15.4) * 12)) : 0.02, browTilt: -0.15, blink: blinkAt(t, 0.9), armR: [0.5, 1.1], armL: [0.25, 0.1] });
+  // glasses
+  for (const s of [-1, 1]) D(m.cyl, M4.chain(Th, M4.T(0.15 * s, -0.09, 0.41), M4.RX(Math.PI / 2), M4.S(0.17, 0.015, 0.17)), '#222', { spec: 1 });
+}
+
+// ---------------- camera shots ----------------
+const SPACE_COLD = (t) => ({ pos: [0.35 + t * 0.15, 6.95 - t * 0.1, 5.4 - t * 0.35], look: [0, 6.15, 0], fov: 56 });
+const SHOTS = [
+  { t0: 0, snap: true, target: SPACE_COLD },
+  { t0: 0.8, snap: true, target: (t) => { const u = smooth(0.8, 1.05, t); return { pos: [0.4, lerp(6.9, 6.3, u), lerp(5.1, 1.2, u)], look: [0, 6.15, 0], fov: lerp(56, 30, u) }; } },
+  { t0: 1.05, snap: true, target: (t) => { const u = smooth(1.05, 1.3, t); return { pos: [0, lerp(24, 2.0, u), lerp(40, 5, u)], look: [0, lerp(6, 1.5, u), 0], fov: 52 }; } },
+  { t0: 1.3, snap: true, target: (t) => { const u = smooth(1.3, 1.62, t); return { pos: [0, 1.62, lerp(9.5, 2.9, u)], look: [0, 1.4, -1.2], fov: 58 }; } },
+  { t0: 1.62, w: 5, target: (t) => ({ pos: [0.1, 1.62, 2.9 - (t - 1.62) * 0.12], look: [0, 1.38, -1.2], fov: 58 }) },
+  { t0: 3.75, w: 8, target: (t) => ({ pos: [0, 1.75, 3.4], look: [0, 1.25, -2.0], fov: 62 }) },
+  { t0: 4.75, w: 6, target: (t) => ({ pos: [-0.35, 1.5, 2.7], look: [1.6, 1.25, -0.3], fov: 62 }) },
+  { t0: 6.2, w: 3.2, target: (t) => { const u = smooth(6.2, 7.8, t); return { pos: [0, lerp(2.4, 26, u), lerp(5.5, 40, u)], look: [0, lerp(1.6, 5, u), 0], fov: 52 }; } },
+  { t0: 7.8, w: 3.5, target: (t) => { const u = smooth(7.8, 9.2, t); return { pos: [0.3, lerp(7.0, 9.5, u), lerp(4.5, 19, u)], look: [0, lerp(6.0, 3.6, u), 0], fov: 52 }; } },
+  { t0: 9.3, w: 4, target: (t) => ({ pos: [0.35, 7.0, 6.2 - (t - 9.3) * 0.3], look: [0, 6.45, 0], fov: 56 }) },
+  { t0: 11.0, w: 6, target: (t) => ({ pos: [-0.3, 6.6, 3.9], look: [0.55, 6.5, 0.2], fov: 54 }) },
+  { t0: 12.0, w: 7, target: (t) => { const u = smooth(12.0, 12.6, t); const U = UFOS[1].p; return { pos: [lerp(-0.3, U[0] - 0.08, u), lerp(6.6, U[1] + 0.52, u), lerp(3.9, U[2] + 1.0, u)], look: [U[0], U[1] + 0.47, U[2]], fov: lerp(54, 30, u) }; } },
+  { t0: 12.8, snap: true, target: (t) => { const u = smooth(12.85, 13.35, t); return { pos: [HERO_SEAT[0], lerp(1.2, 1.6, u), HERO_SEAT[1] + 0.7], look: [HERO_SEAT[0] + lerp(0.3, -0.4, u), lerp(0.6, 1.25, u), lerp(0.5, -4.4, u)], fov: 68, up: [lerp(0.5, 0, u), 1, 0] }; } },
+  { t0: 14.6, snap: true, target: (t) => ({ pos: [0.25 - (t - 14.6) * 0.05, 1.95, HERO_SEAT[1] - 3.3 + (t - 14.6) * 0.15], look: [0.2, 1.3, 0.9], fov: 55 }) },
+  { t0: 16.6, snap: true, target: (t) => ({ pos: [HERO_SEAT[0] - 0.4, 1.55, HERO_SEAT[1] + 0.3], look: [4.9, 1.45 - (t - 16.6) * 0.02, HERO_SEAT[1] - 0.2], fov: 60 }) },
+  { t0: 17.3, snap: true, target: (t) => ({ pos: [HERO_SEAT[0] + 2.5, 1.65, HERO_SEAT[1] + 0.45], look: [HERO_SEAT[0], 1.4, HERO_SEAT[1]], fov: 46 }) },
+  { t0: 18.0, snap: true, target: (t) => ({ pos: [HERO_SEAT[0] - 0.4, 1.55, HERO_SEAT[1] + 0.3], look: [4.9, 1.43, HERO_SEAT[1] - 0.2], fov: 58 }) },
+];
+const SHAKES = [[0.0, 0.08], [3.0, 0.02], [3.8, 0.03], [5.0, 0.05], [6.25, 0.2], [7.85, 0.3], [9.35, 0.12], [11.5, 0.05], [13.0, 0.03], [16.65, 0.06]];
+function shakeAt(t) {
+  let s = [0, 0, 0];
+  for (const [t0, a] of SHAKES) { const d = t - t0; if (d < 0 || d > 0.6) continue; const k = a * Math.exp(-d * 6); s[0] += Math.sin(d * 63) * k; s[1] += Math.sin(d * 51 + 1) * k; s[2] += Math.sin(d * 47 + 2) * k * 0.5; }
+  return s;
+}
+function envAt(t, where) {
+  if (where === 'space') return { skyTop: [0.03, 0.04, 0.12], skyBot: [0.1, 0.1, 0.28], fog: [0.06, 0.07, 0.18], fogNear: 60, fogFar: 200, light: [0.6, 0.8, 0.7], amb: [0.85, 0.88, 1.0], gnd: [0.35, 0.35, 0.5] };
+  if (where === 'city') return { skyTop: [0.1, 0.12, 0.3], skyBot: [0.42, 0.3, 0.55], fog: [0.3, 0.25, 0.45], fogNear: 30, fogFar: 140, light: [0.4, 1.0, 0.6], amb: [0.75, 0.75, 0.95], gnd: [0.4, 0.38, 0.45] };
+  if (where === 'subway') return { skyTop: [0.9, 0.92, 0.95], skyBot: [0.9, 0.92, 0.95], fog: [0.88, 0.9, 0.94], fogNear: 8, fogFar: 26, light: [0.3, 1.0, 0.5], amb: [0.95, 0.96, 1.0], gnd: [0.65, 0.65, 0.68] };
+  return { skyTop: [0.95, 0.93, 0.88], skyBot: [0.95, 0.93, 0.88], fog: [0.95, 0.93, 0.88], fogNear: 12, fogFar: 40, light: [-0.5, 1.0, 0.4], amb: [0.95, 0.95, 1.0], gnd: [0.7, 0.62, 0.55] };
+}
+function whereAt(t) {
+  if (t < 1.05) return 'space';
+  if (t < 1.3) return 'city';
+  if (t < 6.2) return 'subway';
+  if (t < 7.8) return 'city';
+  if (t < 12.8) return 'space';
+  return 'class';
+}
+function scene(t) {
+  const w = whereAt(t);
+  if (w === 'space') {
+    const st = t < 1.05 ? 10.25 + t * 0.6 : t;
+    const look = t < 1.05 ? (i) => clamp(0.45 + smooth(0.0, 0.35, t - (i % 7) * 0.01) * 0.55, 0, 1) : (i) => smooth(7.9 + (i % 13) * 0.02, 8.2 + (i % 13) * 0.02, t);
+    drawSpace(st, look, t);
+    drawSpaceHero(st, t, t < 1.05);
+    if (st >= 9.3) drawUfos(st, t, st >= 11.0 ? smooth(11.0, 11.4, st) : 0);
+  } else if (w === 'city') {
+    drawCity(t < 1.3 ? 7.0 : t);
+  } else if (w === 'subway') {
+    const moving = t < 4.85;
+    drawSubway(t, moving);
+    if (!moving) drawPlatform(t);
+    drawSubwayPeople(t);
+  } else drawClassroom(t);
+}
+
+// ---------------- HUD ----------------
+const SUBS = [
+  [0.0, 2.1, '꿈에서 80억 명이<br>날 쳐다봐.'],
+  [2.15, 3.82, '처음엔 한 명이었는데,'],
+  [3.9, 6.25, '고개 돌릴 때마다<br>두 배야.'],
+  [6.4, 7.1, '도시도,'],
+  [7.9, 8.65, '지구도,'],
+  [9.4, 11.15, '외계인까지<br>날 구경해.'],
+  [12.9, 15.28, '근데 눈 떠 보니<br>수업 시간.'],
+  [15.4, 16.12, '<span class="q">"잘 잤니?"</span>'],
+];
+// [t0, t1, text, cx, cy, rot, color]
+const POPS = [
+  [0.02, 0.62, '휙!', 330, 395, -8], [0.82, 1.58, '휘리릭', 260, 400, 6], [1.82, 2.5, '처음엔', 200, 360, -4, '#ffe14d'], [2.5, 3.0, '흘끔', 170, 430, 6],
+  [3.0, 3.7, '휙!', 330, 380, 7], [3.82, 4.7, '휙휙휙', 250, 380, -5], [5.0, 6.0, '두둥', 300, 400, 0],
+  [6.25, 7.6, '웅성웅성', 252, 400, -3], [7.85, 9.0, '쿠구궁', 252, 560, 4], [9.35, 10.4, '슈웅', 300, 380, -6],
+  [11.45, 12.0, '찰칵', 310, 390, 6], [12.0, 12.5, '번쩍', 220, 560, -5], [13.0, 13.8, '뚝', 360, 380, 8],
+  [15.45, 16.0, '꿀꺽', 190, 590, -6], [16.05, 16.55, '휙!', 330, 380, -7], [17.3, 18.0, '...또야?', 230, 400, -4, '#ffe14d'],
+];
+const $ = (id) => document.getElementById(id);
+// counter value keys [t, value]; between keys of a "ramp" interpolate geometrically
+const CKEYS = [[0, 8e9], [0.82, 8e9], [1.58, 1], [3.0, 1], [3.0, 2], [3.4, 2], [3.4, 4], [3.8, 4], [3.8, 8], [4.05, 64], [5.0, 64], [5.0, 128], [5.3, 16384], [6.25, 16384], [6.25, 32768], [6.7, 16777216], [7.85, 16777216], [7.85, 33554432], [8.35, 8e9], [12.95, 8e9], [12.95, 31], [16.62, 31], [16.62, 62]];
+function counterAt(t) {
+  let v = CKEYS[0][1];
+  for (let i = 0; i < CKEYS.length - 1; i++) {
+    const [a, va] = CKEYS[i], [b, vb] = CKEYS[i + 1];
+    if (t >= a && t < b) { v = (b - a) < 1e-6 ? vb : (va === vb ? va : va * Math.pow(vb / va, (t - a) / (b - a))); if (va !== vb && vb > va && v > 1) v = Math.pow(2, Math.round(Math.log2(v))); }
+    if (t >= b) v = vb;
+  }
+  return Math.round(v);
+}
+let lastVal = null, lastChange = -9;
+function fmt(v) { if (v >= 1e8) return Math.round(v / 1e8) + '억'; return v.toLocaleString('en-US'); }
+// dream puffs
+(function () { const d = $('dream'); const R = rng(3); for (let i = 0; i < 46; i++) { const p = document.createElement('div'); p.className = 'puff'; const side = i % 4, u = R(); let x, y; const s = 70 + R() * 70; if (side === 0) { x = u * 540; y = -s * 0.55; } else if (side === 1) { x = u * 540; y = 960 - s * 0.45; } else if (side === 2) { x = -s * 0.55; y = u * 960; } else { x = 540 - s * 0.45; y = u * 960; } p.style.left = (x - s / 2) + 'px'; p.style.top = (y - s / 2 + s / 2) + 'px'; p.style.width = s + 'px'; p.style.height = s + 'px'; d.insertBefore(p, d.firstChild); } })();
+function hud(t) {
+  const s = SUBS.find(([a, b]) => t >= a && t < b);
+  $('sub').innerHTML = s ? s[2] : '';
+  const C = $('counter'); const v = counterAt(t);
+  if (v !== lastVal) { if (lastVal !== null) lastChange = t; lastVal = v; }
+  // recompute change time deterministically
+  let lc = -9; for (let tt = t; tt > t - 0.3; tt -= 1 / 60) if (counterAt(tt) !== v) { lc = tt; break; }
+  const alien = t < 0.82 || (t >= 9.35 && t < 12.95);
+  C.querySelector('.num').innerHTML = fmt(v) + '<small>명</small>';
+  let sub = '고개 돌릴 때마다 2배';
+  if (t < 0.82) sub = '+ 외계인'; else if (t < 1.58) sub = '되감는 중'; else if (t < 3.0) sub = '처음엔 한 명';
+  else if (alien) sub = '+ 외계인'; else if (t >= 12.95 && t < 16.62) sub = '반 친구 30 + 선생님'; else if (t >= 16.62) sub = '옆 반까지';
+  C.querySelector('.sub').textContent = sub;
+  const bump = 1 + 0.18 * Math.exp(-(t - lc) * 12);
+  if (t < 0.82) {
+    C.style.top = '232px';
+    C.querySelector('.num').style.fontSize = '66px';
+    C.querySelector('.sub').style.fontSize = '30px';
+    C.style.transform = `scale(${1.0 + 0.04 * Math.sin(t * 40)}) rotate(${Math.sin(t * 30) * 2}deg)`;
+  } else {
+    C.style.top = '226px'; C.querySelector('.num').style.fontSize = '52px';
+    C.querySelector('.sub').style.fontSize = alien ? '22px' : '15px';
+    C.style.transform = `scale(${t >= 13.0 && t < 13.3 ? 1 + 0.25 * Math.exp(-(t - 12.95) * 10) : bump})`;
+  }
+  const endT = 18.0;
+  C.style.opacity = t >= endT ? 0 : 1;
+  // pop
+  const P = $('pop'); const p = POPS.find(([a, b]) => t >= a && t < b);
+  if (p) {
+    const u = (t - p[0]) / (p[1] - p[0]); const sc = easeOutBack(Math.min(1, u * 4)) * (u > 0.8 ? 1 - (u - 0.8) * 5 : 1);
+    P.textContent = p[2]; P.style.opacity = 1; P.style.left = p[3] + 'px'; P.style.top = p[4] + 'px';
+    P.style.transform = `translate(-50%,-50%) scale(${Math.max(0, sc)}) rotate(${p[5]}deg)`;
+    P.style.color = p[6] || '#fff';
+  } else P.style.opacity = 0;
+  // dream border
+  const dr = t >= 1.6 && t < 2.9 ? smooth(1.6, 1.75, t) * (1 - smooth(2.6, 2.9, t)) : 0;
+  $('dream').style.opacity = dr;
+  // rewind
+  const rw = t >= 0.8 && t < 1.6;
+  $('rew').style.opacity = rw ? 0.9 : 0;
+  const cv = document.querySelector('canvas');
+  cv.style.filter = rw ? 'saturate(0.5) contrast(1.15) blur(1.4px)' : (t >= endT ? 'brightness(0.75) blur(2px)' : (t >= 12.8 && t < 13.2 ? `blur(${(1 - smooth(12.8, 13.2, t)) * 4}px)` : 'none'));
+  // eyelids: close 12.45-12.8, open 12.8-13.1
+  let lid = 0; if (t >= 12.45 && t < 12.8) lid = smooth(12.45, 12.78, t); else if (t >= 12.8 && t < 13.15) lid = 1 - smooth(12.82, 13.15, t);
+  $('lidT').style.transform = `translateY(${lid * 990}px)`; $('lidB').style.transform = `translateY(${-lid * 990}px)`;
+  // flashes
+  let fl = 0; for (const [ft, a] of [[6.2, 0.4], [7.8, 0.6], [11.5, 0.95], [16.62, 0.25]]) { const d = t - ft; if (d >= 0 && d < 0.3) fl = Math.max(fl, a * (1 - d / 0.3)); }
+  $('flash').style.opacity = fl;
+  // end card
+  const ec = smooth(endT, endT + 0.25, t);
+  $('end').style.opacity = ec; $('end').style.transform = `scale(${0.85 + 0.15 * easeOutBack((t - endT) / 0.35)})`;
+  $('title').style.opacity = 1 - ec * 0.65; $('badge').style.opacity = 1 - ec * 0.65;
+  $('sub').style.opacity = t >= endT ? 0 : 1;
+}
+
+window.DURATION = DURATION;
+let CAM = null;
+window.renderAt = function (t) {
+  const cam = springCamera(SHOTS, t, shakeAt(t)); CAM = cam;
+  E.begin(cam, envAt(t, whereAt(t)));
+  scene(t);
+  E.end();
+  hud(t);
+  return true;
+};
+window.renderAt(0);
+</script>
+</body></html>

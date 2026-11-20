@@ -287,7 +287,8 @@
   }
 
   // ---------- character (series standard) ----------
-  // o: {shirt, hair:'bob'|'short', hairColor, pants, surprise 0..1, mouth 0..1, eyeDots 0..1, headYaw, headPitch, bodyYaw, blink 0..1, hood, vest, armL, armR (angles), talk}
+  // o: {sit 0..1 (legs forward, put base at seat height - 0.46),
+  //     shirt, hair:'bob'|'short', hairColor, pants, surprise 0..1, mouth 0..1, eyeDots 0..1, headYaw, headPitch, bodyYaw, blink 0..1, hood, vest, armL, armR (angles), talk}
   function drawCharacter(E, base, o) {
     const { M4 } = E; const m = E.meshes; const D = (mesh, mat, c, op) => E.draw(mesh, mat, c, op);
     const skin = '#f3cdb8', pants = o.pants || '#26262e';
@@ -295,7 +296,7 @@
     const sp = { spec: 0.45 };
     // legs + shoes
     for (const s of [-1, 1]) {
-      const lk = (o.legSwing || 0) * s;
+      const lk = (o.legSwing || 0) * s - (o.sit || 0) * Math.PI / 2;
       const L = M4.chain(B, M4.T(0.12 * s, 0.46, 0), M4.RX(lk));
       D(m.cyl, M4.chain(L, M4.T(0, -0.22, 0), M4.S(0.17, 0.46, 0.17)), pants, sp);
       D(m.sphere, M4.chain(L, M4.T(0, -0.44, 0.05), M4.S(0.2, 0.12, 0.28)), '#3a3a44', sp);
@@ -347,6 +348,27 @@
     return Hd;
   }
 
+
+  // ---------- basis matrix: up = local +y, fwd = local +z (character faces +z) ----------
+  function basis(pos, up, fwd, s) {
+    const n = (v) => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+    const Y = n(up); const d = fwd[0] * Y[0] + fwd[1] * Y[1] + fwd[2] * Y[2];
+    let Z = n([fwd[0] - Y[0] * d, fwd[1] - Y[1] * d, fwd[2] - Y[2] * d]);
+    const X = [Y[1] * Z[2] - Y[2] * Z[1], Y[2] * Z[0] - Y[0] * Z[2], Y[0] * Z[1] - Y[1] * Z[0]];
+    s = s || 1; const m = M4.I();
+    m[0] = X[0] * s; m[1] = X[1] * s; m[2] = X[2] * s; m[4] = Y[0] * s; m[5] = Y[1] * s; m[6] = Y[2] * s;
+    m[8] = Z[0] * s; m[9] = Z[1] * s; m[10] = Z[2] * s; m[12] = pos[0]; m[13] = pos[1]; m[14] = pos[2];
+    return m;
+  }
+  // ---------- crowd mini person (5 draws; height ~1, faces +z; o.pitch looks up) ----------
+  function drawMini(E, base, o) {
+    const { M4 } = E; const m = E.meshes; o = o || {};
+    E.draw(m.sphere, M4.chain(base, M4.T(0, 0.33, 0), M4.S(0.42, 0.52, 0.36)), o.shirt || '#4f8cff', { spec: 0.4 });
+    const Hd = M4.chain(base, M4.T(0, 0.72, 0), M4.RY(o.yaw || 0), M4.RX(-(o.pitch || 0)), M4.T(0, 0.12, 0));
+    E.draw(m.sphere, M4.mul(Hd, M4.S(0.5)), o.skin || '#f3cdb8', { spec: 0.25 });
+    E.draw(m.hemi, M4.chain(Hd, M4.RX(-0.25), M4.S(0.53)), o.hair || '#1d1d22', { spec: 0.5 });
+    for (const s of [-1, 1]) E.draw(m.sphere, M4.chain(Hd, M4.T(0.09 * s, -0.03, 0.225), M4.S(0.075, 0.11, 0.05)), '#111116', { spec: 0.9 });
+  }
   global.MiniEngine = MiniEngine;
-  global.ME = { M4, hex, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter };
+  global.ME = { M4, hex, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, drawMini, basis };
 })(window);
