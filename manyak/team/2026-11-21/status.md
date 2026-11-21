@@ -39,3 +39,4 @@ APPROVED video #5: [손동작수정] #4 반려 사유(가운데 손가락 실루
 READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 SUBMIT post #1 manyak/team/2026-11-21/post.md
 APPROVED post #1: [게시계획] 캡션·공유 대상·EP04·READY(video#5)·19:00·중복 없음 통과 (검수과 18:28)
+SCHEDULED https://app.metricool.com/planner/calendar?blogId=8061293&openWithPostUuid=-6173945395570391128
