@@ -10,3 +10,4 @@ BRIEF_DONE
 SUBMIT concept #1 manyak/team/2026-11-21/concept.md
 REJECTED concept #1: [정렬][콜드오픈스포] 초점1 — 폰·팝·폰 속 글자 겹침/y1440 아래 위험, 0초 과밀, 0초 07:00 선노출, 카운터 라벨 자리 없음 (상세: 사무실 qa/2026-11-21 concept#1)
 SUBMIT concept #2 manyak/team/2026-11-21/concept.md
+REJECTED concept #2: [정렬] 초점1 — 카운터 130px '10,485,760분' 등 폭 620px 초과, 팝 '손이 먼저 눌렀어' 90px 초과, 제목·엔딩 크기 미지정, 0초 상자·우유팩 과밀 (상세: 사무실 qa concept#2)
