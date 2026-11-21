@@ -633,7 +633,7 @@ function drawPhone(t) {
   D(m.quad, M4.chain(P, M4.T(0, 0, 0.0365), M4.S(0.44, 0.84, 1)), [1, 1, 1], { tex: phoneTex, em: 0.92, spec: 0.3 });
   return P;
 }
-// 손: 소매(분홍) + 흰 소맷부리 + 손바닥 + 검지(위로) + 엄지. 검지 끝이 '5분만 더' 버튼 아래 테두리만 누름(글자 안 가림)
+// 손: 소매(분홍) + 흰 소맷부리 + 편 손바닥 + 붙인 네 손가락 + 엄지. 손바닥으로 버튼 아래쪽을 툭 누름
 const v3 = { add: (a, b) => a.map((x, k) => x + b[k]), sub: (a, b) => a.map((x, k) => x - b[k]), mul: (a, s) => a.map((x) => x * s), len: (a) => Math.hypot(a[0], a[1], a[2]), lerp: (a, b, u) => a.map((x, k) => x + (b[k] - x) * u) };
 function limb(a, b, r, col) { const d = v3.sub(b, a), L = v3.len(d); D(m.cyl, M4.mul(basis(v3.lerp(a, b, 0.5), d, [0, 0, 1], 1), M4.S(r, L, r)), col, { spec: 0.4 }); }
 function drawHand(t, P, from, reachU) {
@@ -645,14 +645,23 @@ function drawHand(t, P, from, reachU) {
   let off = [0, 0, 0];
   if (reachU !== undefined && reachU < 1) { const f = M4.apply(M4.mul(M4.I(), P), [0, 0, 0]); const tw = L(...tipL); off = v3.mul(v3.sub(from, tw), 1 - reachU); }
   const W = (x, y, z) => v3.add(L(x, y, z), off);
-  const tip = W(...tipL), knuckle = W(0.05, -0.15, 0.08 + back), palm = W(0.07, -0.25, 0.1 + back), wrist = W(0.09, -0.38, 0.12 + back);
-  const fromP = reachU !== undefined ? v3.add(from, v3.mul(off, 0.0)) : from;
+  // video #5: 손바닥을 편 채 손바닥 전체로 툭 누름 — 네 손가락 나란히 붙여 펴고 엄지는 옆으로(한 손가락만 세우지 않음)
+  const z0 = 0.05 + back;
+  const palm = W(0.06, -0.24, z0 + 0.02), wrist = W(0.1, -0.48, z0 + 0.06);
+  const fromP = from;
   limb(fromP, wrist, 0.17, '#ff6b81');
-  D(m.sphere, M4.mul(basis(palm, v3.sub(tip, wrist), [0, 0, 1], 1), M4.S(0.22, 0.26, 0.14)), '#f3cdb8', { spec: 0.3 });
-  for (const k of [-1, 0, 1]) { const kn = W(0.07 + k * 0.06 + 0.02, -0.16, 0.13 + back); D(m.sphere, M4.chain(M4.T(kn[0], kn[1], kn[2]), M4.S(0.075, 0.07, 0.075)), '#ecc0a8', { spec: 0.3 }); }
-  limb(knuckle, tip, 0.06, '#f3cdb8');
-  D(m.sphere, M4.chain(M4.T(tip[0], tip[1], tip[2]), M4.S(0.064)), '#f3cdb8', { spec: 0.3 });
-  const th = W(-0.06, -0.2, 0.13 + back); D(m.sphere, M4.chain(M4.T(th[0], th[1], th[2]), M4.S(0.06, 0.1, 0.06)), '#f3cdb8', { spec: 0.3 });
+  const cuff = W(0.1, -0.44, z0 + 0.06); D(m.sphere, M4.chain(M4.T(cuff[0], cuff[1], cuff[2]), M4.S(0.17, 0.05, 0.17)), '#ffffff', { spec: 0.2 });
+  limb(wrist, palm, 0.2, '#f3cdb8');
+  D(m.sphere, M4.mul(basis(palm, v3.sub(palm, wrist), [0, 0, 1], 1), M4.S(0.3, 0.26, 0.1)), '#f3cdb8', { spec: 0.3 });
+  // 네 손가락: 같은 방향, 서로 붙어 있음(길이 차이 작게)
+  const fingers = [[-0.1, 0.09], [-0.033, 0.12], [0.033, 0.11], [0.1, 0.08]];
+  for (const [dx, len] of fingers) {
+    const base = W(0.06 + dx * 0.9, -0.16, z0 + 0.02), ftip = W(0.06 + dx * 1.05, -0.12 + len, z0);
+    limb(base, ftip, 0.066, '#f3cdb8');
+    D(m.sphere, M4.chain(M4.T(ftip[0], ftip[1], ftip[2]), M4.S(0.066)), '#f3cdb8', { spec: 0.3 });
+  }
+  const tb = W(-0.06, -0.28, z0 + 0.02), tt = W(-0.17, -0.18, z0 + 0.01);
+  limb(tb, tt, 0.075, '#f3cdb8'); D(m.sphere, M4.chain(M4.T(tt[0], tt[1], tt[2]), M4.S(0.075)), '#f3cdb8', { spec: 0.3 });
 }
 function shadow(x, y, z, r, a) { D(m.disc, M4.chain(M4.T(x, y + 0.01, z), M4.RX(-Math.PI / 2), M4.S(r)), [0, 0, 0], { alpha: a === undefined ? 0.25 : a, spec: 0, em: 1 }); }
 function withSil(fn) { const D0 = E.draw; E.draw = (mm, mat, c, o) => D0(mm, mat, [0.13, 0.12, 0.18], Object.assign({}, o || {}, { em: 1, spec: 0, alpha: 1 })); try { fn(); } finally { E.draw = D0; } }
