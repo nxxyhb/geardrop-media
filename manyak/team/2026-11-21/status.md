@@ -34,3 +34,4 @@ REJECTED video #4 (final): [0초화면][불쾌한손동작] 초점1 4회차 — 
 APPROVED video #4 (검수과 18:06, 계정 주인 지시로 최종 반려 철회 — 손 모양 그대로 진행. 경미 메모: 소매·엄마 겹침·창밖 초록 원·이틀째 작음 — 사무실 qa video#4)
 READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 NOTE 계정 주인 승인(18:09): video #5 허용 — 손 모양(손바닥 누르기)만 수정해 재제출. 위 READY(#4) 보류, #5 판정 전 게시 금지
+SUBMIT video #5 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
