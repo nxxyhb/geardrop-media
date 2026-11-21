@@ -33,3 +33,4 @@ SUBMIT video #4 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 REJECTED video #4 (final): [0초화면][불쾌한손동작] 초점1 4회차 — 0~6초 손이 가운데 손가락 욕으로 읽힘(손등 주먹+마디 줄 가운데 손가락 1개). 자동 측정·정렬·결말 숨김·#3 지적 반영은 통과 (상세: 사무실 qa video#4, qa/video-4.md)
 APPROVED video #4 (검수과 18:06, 계정 주인 지시로 최종 반려 철회 — 손 모양 그대로 진행. 경미 메모: 소매·엄마 겹침·창밖 초록 원·이틀째 작음 — 사무실 qa video#4)
 READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
+NOTE 계정 주인 승인(18:09): video #5 허용 — 손 모양(손바닥 누르기)만 수정해 재제출. 위 READY(#4) 보류, #5 판정 전 게시 금지
