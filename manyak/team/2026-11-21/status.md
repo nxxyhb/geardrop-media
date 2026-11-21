@@ -9,3 +9,4 @@ APPROVED brief #3 (검수과 11:46, 메모: EP03 '80억'은 절정 숫자·최�
 BRIEF_DONE
 SUBMIT concept #1 manyak/team/2026-11-21/concept.md
 REJECTED concept #1: [정렬][콜드오픈스포] 초점1 — 폰·팝·폰 속 글자 겹침/y1440 아래 위험, 0초 과밀, 0초 07:00 선노출, 카운터 라벨 자리 없음 (상세: 사무실 qa/2026-11-21 concept#1)
+SUBMIT concept #2 manyak/team/2026-11-21/concept.md
