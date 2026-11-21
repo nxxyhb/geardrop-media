@@ -14,3 +14,4 @@ REJECTED concept #2: [정렬] 초점1 — 카운터 130px '10,485,760분' 등 �
 SUBMIT concept #3 manyak/team/2026-11-21/concept.md
 REJECTED concept #3: [정렬][숫자오류] 초점1 — 엔딩 카드 2줄 표기 잔존(828px 폭 초과), 카운터 '더 잔 시간'이 누적과 불일치(이틀째·10년 잤어). 초점2 PASS (상세: 사무실 qa concept#3)
 SUBMIT concept #4 manyak/team/2026-11-21/concept.md
+SUBMIT knowledge #1 ArtifactData knowledge/draft-2026-11-21 (rulesDraft 심사 대상)
