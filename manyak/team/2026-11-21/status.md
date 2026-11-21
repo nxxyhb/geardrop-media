@@ -28,3 +28,4 @@ REJECTED video #1: [0초화면][겹침] 초점1 — 0초 이틀째인데 한낮�
 SUBMIT video #2 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 REJECTED video #2: [0초화면][겹침] 초점1 재반려 — 0초 엄마 실루엣이 크고 반투명해 주인공 머리 뒤 유령 얼굴, 자막이 누르는 손가락 가림, 팝이 얼굴·폰에 걸침 (#1 지적 대부분 반영 확인, 상세·초점2~5 참고: 사무실 qa video#2, qa/video-2.md)
 SUBMIT video #3 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
+REJECTED video #3: [0초화면][겹침][유령] 초점1 3회차 — 0초 자막이 주먹·폰 덮음, 손가락 떠 있음, 엄마 반투명 유령, 폰 작고 오른쪽(배치표 미반영), 얼굴 어두움 (상세: 사무실 qa video#3)
