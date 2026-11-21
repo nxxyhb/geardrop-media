@@ -36,3 +36,4 @@ READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 NOTE 계정 주인 승인(18:09): video #5 허용 — 손 모양(손바닥 누르기)만 수정해 재제출. 위 READY(#4) 보류, #5 판정 전 게시 금지
 SUBMIT video #5 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 APPROVED video #5: [손동작수정] #4 반려 사유(가운데 손가락 실루엣) 해소 — 다섯 손가락 편 손, 독립 검수 PASS, 자동 측정·정렬 통과. 경미 메모: 손끝 톱니·회색 장갑 질감·팔 연결(다음 편) — 사무실 qa video#5
+READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
