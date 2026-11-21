@@ -15,3 +15,5 @@ SUBMIT concept #3 manyak/team/2026-11-21/concept.md
 REJECTED concept #3: [정렬][숫자오류] 초점1 — 엔딩 카드 2줄 표기 잔존(828px 폭 초과), 카운터 '더 잔 시간'이 누적과 불일치(이틀째·10년 잤어). 초점2 PASS (상세: 사무실 qa concept#3)
 SUBMIT concept #4 manyak/team/2026-11-21/concept.md
 SUBMIT knowledge #1 ArtifactData knowledge/draft-2026-11-21 (rulesDraft 심사 대상)
+APPROVED concept #4 (검수과 12:23, 초점1~5 PASS · 제작 메모: 12.4초 폰 04:20 혼동, 내레이션4·클로즈업 펀치 예고, 3a '두 달' 0.4초 이름, 카운터 k 건너뜀, 999+ 알림 그림 — qa/concept-4.md)
+REJECTED knowledge #1: [근거부족] 3편인데 '잠정' 4개(규칙1·4·8·10: 같은 날 같은 기획서·브리프 반려, EP02 한 편), 단계 기준 6편 경계 겹침·'반려 2건→잠정' 수정, 규칙5 도달 비교는 상관 (qa/knowledge-1.md)
