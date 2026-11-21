@@ -38,3 +38,4 @@ SUBMIT video #5 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 APPROVED video #5: [손동작수정] #4 반려 사유(가운데 손가락 실루엣) 해소 — 다섯 손가락 편 손, 독립 검수 PASS, 자동 측정·정렬 통과. 경미 메모: 손끝 톱니·회색 장갑 질감·팔 연결(다음 편) — 사무실 qa video#5
 READY manyak/posts/2026-11-21-snooze-doubles/reel.mp4
 SUBMIT post #1 manyak/team/2026-11-21/post.md
+APPROVED post #1: [게시계획] 캡션·공유 대상·EP04·READY(video#5)·19:00·중복 없음 통과 (검수과 18:28)
