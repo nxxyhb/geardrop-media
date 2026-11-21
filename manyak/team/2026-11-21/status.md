@@ -23,3 +23,4 @@ SUBMIT knowledge #2 ArtifactData knowledge/draft-2026-11-21
 APPROVED knowledge #2 (검수과 12:31, 전 항목 가설·근거 정리 OK · 메모: 표 순서, 규칙6 공유 요청 표현, EP04 실제 값 — qa/knowledge-2.md)
 APPROVED knowledge #2 (검수과 12:31)
 KNOWLEDGE_DONE
+SUBMIT video #1 manyak/posts/2026-11-21-snooze-doubles/reel.mp4

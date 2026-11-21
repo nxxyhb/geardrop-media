@@ -1,0 +1,48 @@
+{
+ "voice": "Minho 537a82ae (cartesia sonic-3.5)",
+ "speed": "1.15~1.18, s2·s4 atempo 1.1",
+ "segments": [
+  {
+   "file": "vo/s1.wav",
+   "text": "알람 오 분만 더 눌렀거든.",
+   "start": 0.0,
+   "end": 1.925,
+   "dur": 1.925
+  },
+  {
+   "file": "vo/s2.wav",
+   "text": "근데 누를 때마다 자는 시간이 두 배야.",
+   "start": 2.15,
+   "end": 5.076,
+   "dur": 2.926
+  },
+  {
+   "file": "vo/s3.wav",
+   "text": "이틀이 두 달 되고,",
+   "start": 5.45,
+   "end": 6.949,
+   "dur": 1.499
+  },
+  {
+   "file": "vo/s4.wav",
+   "text": "결국 십 년을 잤어.",
+   "start": 9.25,
+   "end": 11.257,
+   "dur": 2.007
+  },
+  {
+   "file": "vo/s5.wav",
+   "text": "겨우 깼는데 알람이 또 울려.",
+   "start": 11.5,
+   "end": 13.827,
+   "dur": 2.327
+  },
+  {
+   "file": "vo/s6.wav",
+   "text": "손이 먼저 눌렀어.",
+   "start": 14.15,
+   "end": 15.896,
+   "dur": 1.746
+  }
+ ]
+}

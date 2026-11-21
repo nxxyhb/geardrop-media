@@ -369,6 +369,30 @@
     E.draw(m.hemi, M4.chain(Hd, M4.RX(-0.25), M4.S(0.53)), o.hair || '#1d1d22', { spec: 0.5 });
     for (const s of [-1, 1]) E.draw(m.sphere, M4.chain(Hd, M4.T(0.09 * s, -0.03, 0.225), M4.S(0.075, 0.11, 0.05)), '#111116', { spec: 0.9 });
   }
+  // ---------- HUD check (가운데 정렬 규칙) ----------
+  // 보이는(누적 opacity>0.05) 글자 요소(.t)마다 {text, cx, left, right, top, bottom, ok}.
+  // 기준: |cx-270| ≤ 4, left ≥ 100, right ≤ 440 (CSS 540x960)
+  function hudCheck() {
+    const st = document.getElementById('stage'), sr = st.getBoundingClientRect();
+    const out = [];
+    for (const el of st.querySelectorAll('.t')) {
+      const txt = (el.innerText || '').trim(); if (!txt) continue;
+      let op = 1, n = el;
+      while (n && n !== st) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') { op = 0; break; } op *= parseFloat(cs.opacity); n = n.parentElement; }
+      if (op <= 0.05) continue;
+      const r = el.getBoundingClientRect();
+      const left = r.left - sr.left, right = r.right - sr.left, cx = (left + right) / 2;
+      out.push({ text: txt.replace(/\s+/g, ' '), cx: +cx.toFixed(1), left: +left.toFixed(1), right: +right.toFixed(1), top: +(r.top - sr.top).toFixed(1), bottom: +(r.bottom - sr.top).toFixed(1), ok: Math.abs(cx - 270) <= 4 && left >= 100 && right <= 440 });
+    }
+    return out;
+  }
+  // 글자가 maxW(px)를 넘으면 글자 크기를 줄임 (base px에서 시작)
+  function fitText(el, base, maxW, minPx) {
+    let fs = base; el.style.fontSize = fs + 'px';
+    while (el.scrollWidth > maxW && fs > (minPx || 12)) { fs -= 1; el.style.fontSize = fs + 'px'; }
+    return fs;
+  }
+  global.hudCheck = hudCheck;
   global.MiniEngine = MiniEngine;
-  global.ME = { M4, hex, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, drawMini, basis };
+  global.ME = { M4, hex, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, drawMini, basis, hudCheck, fitText };
 })(window);

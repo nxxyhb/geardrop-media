@@ -1,25 +1,34 @@
-/* 만약에 공통 HUD — 아이폰 전체화면 안전 영역 (CSS 540x960 기준)
-   좌우 각 ~50px 잘림 → 모든 글자: 왼쪽 64px, 오른쪽 100px(릴스 아이콘) 안쪽 = x 64..440 (폭 376, 중심 252)
-   위 115px 위·아래 720px 아래 중요한 글자 금지. 확인: ffmpeg crop=880:1920:100:0 */
+/* 만약에 공통 HUD v2 (EP04~) — 계정 주인 지시 '가운데 정렬' (CSS 540x960 기준)
+   모든 글자 블록: 가로 중심 270px, text-align:center, 가로 100..440px 안(폭 최대 340px).
+   가운데 배치는 바깥 래퍼(.row: left:0; right:0; flex; justify-content:center)로만.
+   애니메이션(scale·translateY)은 안쪽 요소(.in)에만. translateX(-50%)·left 고정값 금지.
+   세로: 배지 118 · 제목 142(2줄, ≤34px) · 카운터 제목 바로 아래 · 팝 300~460 · 자막 640.
+   위 115px 위·아래 720px 아래 중요한 글자 금지. 검사: window.hudCheck() (engine.js), crop=880:1920:100:0 */
 html,body{margin:0;padding:0;background:#000;}
 #stage{position:relative;width:540px;height:960px;overflow:hidden;font-family:'Noto Sans CJK KR','Noto Sans KR',sans-serif;font-weight:900;}
 canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
-.safe{position:absolute;left:64px;width:376px;text-align:center;}
-#badge{top:116px;}
-#badge span{display:inline-block;border:2.5px solid #fff;border-radius:10px;padding:1px 10px 3px;font-size:15px;color:#fff;background:rgba(255,107,129,.92);letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
-#title{top:142px;font-size:30px;line-height:1.18;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.55);-webkit-text-stroke:1.5px rgba(0,0,0,.6);paint-order:stroke fill;word-break:keep-all;}
+.row{position:absolute;left:0;right:0;display:flex;justify-content:center;pointer-events:none;}
+.row>.in{max-width:340px;text-align:center;word-break:keep-all;}
+#badgeRow{top:118px;}
+#badge{display:inline-block;border:2.5px solid #fff;border-radius:10px;padding:1px 10px 3px;font-size:15px;color:#fff;background:rgba(255,107,129,.92);letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+#titleRow{top:144px;}
+#title{font-size:30px;line-height:1.18;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.55);-webkit-text-stroke:1.5px rgba(0,0,0,.6);paint-order:stroke fill;}
 #title .y{color:#ffe14d;}
-#counter{position:absolute;left:64px;width:376px;top:226px;text-align:center;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.6);transform-origin:center top;}
+#counterRow{top:222px;}
+#counter{color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.6);transform-origin:center top;display:flex;flex-direction:column;align-items:center;}
 #counter .lab{font-size:17px;display:inline-block;background:rgba(0,0,0,.55);padding:2px 9px;border-radius:8px;}
-#counter .num{font-size:52px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
-#counter .num small{font-size:28px;margin-left:3px;}
+#counter .num{font-size:48px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
+#counter .num small{font-size:26px;margin-left:3px;}
 #counter .sub{font-size:15px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
-#pop{position:absolute;font-size:44px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
-#sub{top:640px;font-size:29px;line-height:1.25;color:#fff;-webkit-text-stroke:6px #000;paint-order:stroke fill;word-break:keep-all;}
+#popRow{top:338px;}
+#pop{font-size:44px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
+#subRow{top:640px;}
+#sub{font-size:29px;line-height:1.25;color:#fff;-webkit-text-stroke:6px #000;paint-order:stroke fill;}
 #sub .q{color:#ffe14d;}
-#end{position:absolute;left:70px;width:364px;top:330px;opacity:0;text-align:center;color:#fff;}
-#end .card{background:rgba(20,20,28,.8);border:3px solid #fff;border-radius:24px;padding:20px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
-#end .ep{display:inline-block;font-size:34px;border:3px solid #fff;border-radius:14px;padding:2px 14px 6px;background:#ff6b81;}
+#endRow{top:300px;opacity:0;}
+#end{width:320px;color:#fff;transform-origin:center center;}
+#end .card{background:rgba(20,20,28,.82);border:3px solid #fff;border-radius:24px;padding:20px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
+#end .ep{display:inline-block;font-size:32px;border:3px solid #fff;border-radius:14px;padding:2px 14px 6px;background:#ff6b81;}
 #end .share{font-size:25px;line-height:1.32;margin-top:14px;color:#ffe14d;word-break:keep-all;}
 #end .next{font-size:16px;margin-top:12px;color:#ddd;font-weight:700;}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;}
