@@ -21,3 +21,5 @@ CONCEPT_DONE
 REJECTED knowledge #1: [근거부족] 단계 과대(같은 기획서 연속 반려를 여러 건으로 셈)
 SUBMIT knowledge #2 ArtifactData knowledge/draft-2026-11-21
 APPROVED knowledge #2 (검수과 12:31, 전 항목 가설·근거 정리 OK · 메모: 표 순서, 규칙6 공유 요청 표현, EP04 실제 값 — qa/knowledge-2.md)
+APPROVED knowledge #2 (검수과 12:31)
+KNOWLEDGE_DONE
