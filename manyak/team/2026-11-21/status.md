@@ -6,3 +6,4 @@ SUBMIT brief #2 manyak/team/2026-11-21/brief.md
 REJECTED brief #2: [공유대상][콜드오픈스포][근거부족] 친구 먼저→행동 출발점→엔딩·캡션 일치 없음, EP01 공유 비교 교란 단서 부족, 0초 '최종 숫자' 금지 미명시, '화면 절반'은 선택 실험으로, 후보별 친구 유형 없음
 SUBMIT brief #3 manyak/team/2026-11-21/brief.md
 APPROVED brief #3 (검수과 11:46, 메모: EP03 '80억'은 절정 숫자·최종값 62, 출처·경과시간 표기 사소 5건)
+BRIEF_DONE
