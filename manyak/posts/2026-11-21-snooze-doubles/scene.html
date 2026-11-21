@@ -23,7 +23,7 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
 #counter .lab{font-size:17px;display:inline-block;background:rgba(0,0,0,.55);padding:2px 9px;border-radius:8px;}
 #counter .num{font-size:48px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
 #counter .num small{font-size:26px;margin-left:3px;}
-#counter .sub{font-size:15px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
+#counter .sub{font-size:15px;margin-top:4px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
 #popRow{top:338px;}
 #pop{font-size:44px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
 #subRow{top:640px;}
@@ -34,7 +34,7 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
 #end .card{background:rgba(20,20,28,.82);border:3px solid #fff;border-radius:24px;padding:20px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
 #end .ep{display:inline-block;font-size:32px;border:3px solid #fff;border-radius:14px;padding:2px 14px 6px;background:#ff6b81;}
 #end .share{font-size:25px;line-height:1.32;margin-top:14px;color:#ffe14d;word-break:keep-all;}
-#end .next{font-size:16px;margin-top:12px;color:#ddd;font-weight:700;}
+#end .next{font-size:17px;margin-top:12px;color:#ddd;font-weight:700;}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;}
 
 </style>
@@ -470,7 +470,7 @@ const pulse = (t, a, w) => { const d = t - a; return d >= 0 && d < w ? Math.sin(
 const PRESSES = [0.0, 0.5, 1.75, 2.3, 2.7, 3.1, 3.55, 3.8, 4.05, 4.3, 4.75, 5.2, 14.6];
 const PRESS_T = 14.6; // 반전: 손이 혼자 누름 (14.0~14.6 뻗음, 15.5까지 누른 채)
 // ringing windows [t0, t1]
-const RINGS = [[0, 0.8], [1.4, 1.7], [2.2, 2.3], [2.6, 2.7], [3.0, 3.1], [3.4, 3.55], [3.65, 3.8], [3.9, 4.05], [4.15, 4.3], [4.4, 5.5], [9.2, 9.8], [11.0, 14.6]];
+const RINGS = [[0, 0.8], [1.4, 1.7], [2.2, 2.3], [2.6, 2.7], [3.0, 3.1], [3.4, 3.55], [3.65, 3.8], [3.9, 4.05], [4.15, 4.3], [4.4, 5.75], [9.2, 9.8], [11.0, 14.6]];
 const ringing = (t) => RINGS.some(([a, b]) => t >= a && t < b);
 function pressAmt(t) { let p = 0; for (const s of PRESSES) { const d = t - s; if (d >= -0.12 && d < 0.18) p = Math.max(p, d < 0 ? 1 + d / 0.12 : 1 - d / 0.18); } if (t >= PRESS_T && t < 15.5) p = 1; return clamp(p, 0, 1); }
 // phone clock text (only 1.4–3.4)
@@ -492,7 +492,7 @@ function counterAt(t) {
   return v;
 }
 function subFor(v) {
-  const T = { 5: '누를 때마다 2배', 10: '누를 때마다 2배', 20: '누를 때마다 2배', 40: '누를 때마다 2배', 80: '누를 때마다 2배', 160: '누를 때마다 2배', 320: '누를 때마다 2배', 640: '10시간 넘게', 1280: '하루 가까이', 2560: '이틀째', 5120: '나흘째', 10240: '1주일 넘게', 20480: '2주 넘게', 40960: '약 4주', 81920: '약 2달', 163840: '약 4달', 327680: '7달 넘게', 655360: '1년 넘게', 1310720: '약 2.5년', 2621440: '약 5년', 5242880: '약 10년', 10485760: '약 20년' };
+  const T = { 640: '10시간 넘게', 1280: '하루 가까이', 2560: '이틀째', 5120: '나흘째', 10240: '1주일 넘게', 20480: '2주 넘게', 40960: '약 4주', 81920: '약 2달', 163840: '약 4달', 327680: '7달 넘게', 655360: '1년 넘게', 1310720: '약 2.5년', 2621440: '약 5년', 5242880: '약 10년', 10485760: '약 20년' };
   return T[v] || '';
 }
 
@@ -508,20 +508,20 @@ function updatePhone(time, pressed, badge, ring, glow) {
   const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, ring ? '#3b3f8f' : '#1d2040'); g.addColorStop(1, ring ? '#a24b7c' : '#2a1d3a');
   c.fillStyle = g; c.fillRect(0, 0, w, h);
   // wallpaper (no text): moon + stars
-  c.fillStyle = 'rgba(255,246,200,.35)'; c.beginPath(); c.arc(128, 340, 62, 0, 7); c.fill();
-  c.fillStyle = 'rgba(255,255,255,.35)'; const R = rng(4); for (let i = 0; i < 18; i++) c.fillRect(R() * w, 230 + R() * 260, 3, 3);
+  c.fillStyle = 'rgba(255,246,200,.35)'; c.beginPath(); c.arc(128, 390, 56, 0, 7); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.35)'; const R = rng(4); for (let i = 0; i < 18; i++) c.fillRect(R() * w, 290 + R() * 200, 3, 3);
   // bell icon (shape only), left of time
-  c.save(); c.translate(time ? 44 : w / 2, 50); const bs = (ring ? 1 + glow * 0.12 : 1) * (time ? 0.55 : 0.7); c.scale(bs, bs);
+  c.save(); c.translate(w / 2, 44); const bs = (ring ? 1 + glow * 0.12 : 1) * 0.6; c.scale(bs, bs);
   c.fillStyle = '#ffe14d'; c.beginPath(); c.moveTo(-34, 26); c.quadraticCurveTo(-30, -36, 0, -40); c.quadraticCurveTo(30, -36, 34, 26); c.closePath(); c.fill();
   c.fillRect(-42, 22, 84, 10); c.beginPath(); c.arc(0, 38, 9, 0, 7); c.fill();
   if (ring) { c.strokeStyle = '#ffe14d'; c.lineWidth = 7; for (const s of [-1, 1]) { c.beginPath(); c.arc(0, 0, 54, s < 0 ? Math.PI * 0.8 : -Math.PI * 0.2, s < 0 ? Math.PI * 1.2 : Math.PI * 0.2); c.stroke(); } }
   c.restore();
-  if (time) { c.fillStyle = '#fff'; c.font = `900 58px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(time, 150, 52); }
+  if (time) { c.fillStyle = '#fff'; c.font = `900 62px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(time, w / 2, 112); }
   // snooze button
-  const by = pressed ? 98 : 92;
-  if (!pressed) { c.fillStyle = 'rgba(0,0,0,.45)'; rr(c, 20, 100, w - 40, 86, 28); c.fill(); }
-  c.fillStyle = pressed ? '#d9822b' : '#ff9f1c'; rr(c, 20, by, w - 40, 86, 28); c.fill();
-  c.fillStyle = '#fff'; c.font = `900 48px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('5분만 더', w / 2, by + 45);
+  const by = pressed ? 160 : 154;
+  if (!pressed) { c.fillStyle = 'rgba(0,0,0,.45)'; rr(c, 14, 162, w - 28, 100, 30); c.fill(); }
+  c.fillStyle = pressed ? '#d9822b' : '#ff9f1c'; rr(c, 14, by, w - 28, 100, 30); c.fill();
+  c.fillStyle = '#fff'; c.font = `900 58px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('5분만 더', w / 2, by + 52);
   if (badge) { c.fillStyle = '#ff2d3f'; c.beginPath(); c.arc(w - 26, 24, 20, 0, 7); c.fill(); c.fillStyle = '#fff'; for (let k = -1; k <= 1; k++) { c.beginPath(); c.arc(w - 26 + k * 9, 24, 3.6, 0, 7); c.fill(); } }
   gl.bindTexture(gl.TEXTURE_2D, phoneTex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, phoneCanvas);
@@ -586,8 +586,8 @@ const TX = {
 
 // ---------------- world state helpers ----------------
 function seasonAt(t) {
-  if (t < 5.5) return 0;
-  if (t < 7.6) return smooth(5.5, 7.3, t) * 2.0;          // green -> autumn -> bare
+  if (t < 5.75) return 0;
+  if (t < 7.6) return smooth(5.75, 7.4, t) * 2.0;          // green -> autumn -> bare
   if (t < 9.2) return 3;                                  // snow
   return 4;                                               // future city
 }
@@ -596,8 +596,8 @@ function dayAt(t) {
   if (t < 0.8) return 0.04;
   if (t < 1.4) return 0.5 + 0.5 * Math.cos((t - 0.8) * 26 + Math.PI) * (1 - smooth(1.2, 1.4, t)) + 0.5 * smooth(1.2, 1.4, t) ;
   if (t < 4.4) return 1;
-  if (t < 5.5) return 0.04;
-  if (t < 11.0) return 0.55 + 0.45 * Math.cos((t - 5.5) * 9);
+  if (t < 5.75) return 0.04;
+  if (t < 11.0) return 0.55 + 0.45 * Math.cos((t - 5.75) * 9);
   if (t >= 15.5 && t < 15.9) return 0.5 + 0.5 * Math.cos((t - 15.5) * 40);
   if (t >= 16.0) return 0.25;
   return 0.8;
@@ -605,9 +605,9 @@ function dayAt(t) {
 // 상태 (콜드 오픈 0~0.8 = 이틀째 중간 장면이지만 상자·우유팩은 4.4초에 처음 등장)
 function stuff(t) {
   return {
-    boxes: t < 4.4 ? 0 : t < 5.5 ? 3 : t < 7.6 ? 6 : 10,
+    boxes: t < 4.4 ? 0 : t < 5.75 ? 3 : t < 7.6 ? 6 : 10,
     web: smooth(5.8, 6.8, t),
-    hair: t < 5.5 ? 0 : t < 7.6 ? smooth(5.5, 7.4, t) : 1 + smooth(7.6, 9.0, t),
+    hair: t < 5.75 ? 0 : t < 7.6 ? smooth(5.75, 7.4, t) : 1 + smooth(7.6, 9.0, t),
     dust: smooth(7.6, 9.0, t),
     vine: smooth(9.2, 10.4, t),
     beard: smooth(9.3, 9.9, t),
@@ -616,12 +616,12 @@ function stuff(t) {
 }
 
 // ---------------- props ----------------
-const HX = -0.85; // hero lies on the left half of the bed
+const HX = -0.95; // hero lies on the left half of the bed
 const PHONE0 = [0.35, 1.47, 2.3]; // 침대 발치 앞 작은 협탁 위
 const PHONE_SIT = [0.6, 1.35, 0.9];
 let PHONE = PHONE0;
 function phoneMat(t) {
-  PHONE = t >= 11.0 ? PHONE_SIT : PHONE0;
+  PHONE = t >= 5.75 ? PHONE_SIT : PHONE0;
   const vib = ringing(t) ? Math.sin(t * 95) * 0.07 + Math.sin(t * 61) * 0.03 : 0;
   return M4.chain(M4.T(PHONE[0] + (ringing(t) ? Math.sin(t * 83) * 0.015 : 0), PHONE[1], PHONE[2]), M4.RY(-0.08), M4.RX(-0.3), M4.RZ(vib));
 }
@@ -629,7 +629,7 @@ function drawPhone(t) {
   const P = phoneMat(t);
   const press = pressAmt(t);
   D(m.box, M4.chain(P, M4.S(0.5, 0.92, 0.07)), '#25262e', { spec: 0.7 });
-  updatePhone(phoneTime(t), press > 0.3, t >= 4.4 && t < 5.5, ringing(t), 0.5 + 0.5 * Math.sin(t * 30));
+  updatePhone(phoneTime(t), press > 0.3, t >= 4.4 && t < 5.75, ringing(t), 0.5 + 0.5 * Math.sin(t * 30));
   D(m.quad, M4.chain(P, M4.T(0, 0, 0.0365), M4.S(0.44, 0.84, 1)), [1, 1, 1], { tex: phoneTex, em: 0.92, spec: 0.3 });
   return P;
 }
@@ -638,30 +638,32 @@ const v3 = { add: (a, b) => a.map((x, k) => x + b[k]), sub: (a, b) => a.map((x, 
 function limb(a, b, r, col) { const d = v3.sub(b, a), L = v3.len(d); D(m.cyl, M4.mul(basis(v3.lerp(a, b, 0.5), d, [0, 0, 1], 1), M4.S(r, L, r)), col, { spec: 0.4 }); }
 function drawHand(t, P, from, reachU) {
   const press = pressAmt(t);
-  // button bottom edge in phone-local coords: (x, -0.06, front)
-  let tip = M4.apply(P, [0.06, 0.112 + 0.012 * press, 0.045 + 0.07 * (1 - press)]);
-  if (reachU !== undefined) tip = v3.lerp(from, tip, reachU);
-  const up = M4.apply(P, [0.0, 1, 0]).map((x, k) => x - M4.apply(P, [0, 0, 0])[k]);
-  const fingerBase = v3.add(tip, v3.mul(up, -0.13));
-  const palm = v3.add(fingerBase, [0.05, -0.1, 0.06]);
-  const wrist = v3.add(palm, v3.mul(v3.sub(from, palm), 0.12 / v3.len(v3.sub(from, palm))));
-  limb(from, wrist, 0.17, '#ff6b81');
-  D(m.cyl, M4.mul(basis(wrist, v3.sub(wrist, from), [0, 0, 1], 1), M4.S(0.19, 0.05, 0.19)), '#ffffff', { spec: 0.2 });
-  D(m.sphere, M4.mul(basis(palm, v3.sub(palm, from), [0, 0, 1], 1), M4.S(0.2, 0.17, 0.12)), '#f3cdb8', { spec: 0.3 });
-  limb(fingerBase, tip, 0.055, '#f3cdb8');
-  D(m.sphere, M4.chain(M4.T(tip[0], tip[1], tip[2]), M4.S(0.058)), '#f3cdb8', { spec: 0.3 });
-  for (const k of [1, 2]) D(m.sphere, M4.chain(M4.T(palm[0] - 0.03 * k + 0.02, palm[1] + 0.06, palm[2] + 0.05), M4.S(0.07, 0.06, 0.07)), '#ecc0a8', { spec: 0.3 });
-  const th = v3.add(palm, [-0.1, 0.04, 0.03]); D(m.sphere, M4.chain(M4.T(th[0], th[1], th[2]), M4.S(0.06, 0.09, 0.06)), '#f3cdb8', { spec: 0.3 });
+  const L = (x, y, z) => M4.apply(P, [x, y, z]);
+  const back = 0.07 * (1 - press);
+  // 검지 끝 = 버튼 아래 테두리 (phone-local y ≈ 0.0), 화면 앞
+  let tipL = [0.05, -0.012 + 0.012 * press, 0.06 + back];
+  let off = [0, 0, 0];
+  if (reachU !== undefined && reachU < 1) { const f = M4.apply(M4.mul(M4.I(), P), [0, 0, 0]); const tw = L(...tipL); off = v3.mul(v3.sub(from, tw), 1 - reachU); }
+  const W = (x, y, z) => v3.add(L(x, y, z), off);
+  const tip = W(...tipL), knuckle = W(0.05, -0.15, 0.08 + back), palm = W(0.07, -0.25, 0.1 + back), wrist = W(0.09, -0.38, 0.12 + back);
+  const fromP = reachU !== undefined ? v3.add(from, v3.mul(off, 0.0)) : from;
+  limb(fromP, wrist, 0.17, '#ff6b81');
+  D(m.sphere, M4.mul(basis(palm, v3.sub(tip, wrist), [0, 0, 1], 1), M4.S(0.22, 0.26, 0.14)), '#f3cdb8', { spec: 0.3 });
+  for (const k of [-1, 0, 1]) { const kn = W(0.07 + k * 0.06 + 0.02, -0.16, 0.13 + back); D(m.sphere, M4.chain(M4.T(kn[0], kn[1], kn[2]), M4.S(0.075, 0.07, 0.075)), '#ecc0a8', { spec: 0.3 }); }
+  limb(knuckle, tip, 0.06, '#f3cdb8');
+  D(m.sphere, M4.chain(M4.T(tip[0], tip[1], tip[2]), M4.S(0.064)), '#f3cdb8', { spec: 0.3 });
+  const th = W(-0.06, -0.2, 0.13 + back); D(m.sphere, M4.chain(M4.T(th[0], th[1], th[2]), M4.S(0.06, 0.1, 0.06)), '#f3cdb8', { spec: 0.3 });
 }
 function shadow(x, y, z, r, a) { D(m.disc, M4.chain(M4.T(x, y + 0.01, z), M4.RX(-Math.PI / 2), M4.S(r)), [0, 0, 0], { alpha: a === undefined ? 0.25 : a, spec: 0, em: 1 }); }
+function withSil(fn) { const D0 = E.draw; E.draw = (mm, mat, c, o) => D0(mm, mat, [0.13, 0.12, 0.18], Object.assign({}, o || {}, { em: 1, spec: 0, alpha: 1 })); try { fn(); } finally { E.draw = D0; } }
 function withAlpha(a, fn) { if (a >= 0.999) return fn(); const D0 = E.draw; E.draw = (mm, mat, c, o) => D0(mm, mat, c, Object.assign({}, o || {}, { alpha: a * (o && o.alpha !== undefined ? o.alpha : 1) })); try { fn(); } finally { E.draw = D0; } }
 
 function drawRoom(t, S) {
   const day = dayAt(t);
   D(m.box, M4.chain(M4.T(0, -0.05, 9), M4.S(7, 0.1, 26)), '#ffffff', { tex: TX.floor, tr: [3, 10], spec: 0.15 });
-  D(m.box, M4.chain(M4.T(0, 3.5, -2.3), M4.S(7, 7.2, 0.1)), '#ffffff', { tex: TX.wall, tr: [3, 2], spec: 0.05 });
-  D(m.box, M4.chain(M4.T(-2.8, 3.5, 9), M4.S(0.1, 7.2, 26)), '#ffffff', { tex: TX.wall, tr: [10, 2], spec: 0.05 });
-  D(m.box, M4.chain(M4.T(2.8, 3.5, 9), M4.S(0.1, 7.2, 26)), '#ffffff', { tex: TX.wall, tr: [10, 2], spec: 0.05 });
+  D(m.box, M4.chain(M4.T(0, 4.5, -2.3), M4.S(7, 9.2, 0.1)), '#ffffff', { tex: TX.wall, tr: [3, 2], spec: 0.05 });
+  D(m.box, M4.chain(M4.T(-2.8, 4.5, 9), M4.S(0.1, 9.2, 26)), '#ffffff', { tex: TX.wall, tr: [10, 2], spec: 0.05 });
+  D(m.box, M4.chain(M4.T(2.8, 4.5, 9), M4.S(0.1, 9.2, 26)), '#ffffff', { tex: TX.wall, tr: [10, 2], spec: 0.05 });
   // 협탁(폰 받침)
   D(m.box, M4.chain(M4.T(0.35, 0.5, 2.3), M4.S(0.75, 1.0, 0.6)), '#b07c52', { spec: 0.25 });
   D(m.box, M4.chain(M4.T(0.35, 1.0, 2.3), M4.S(0.8, 0.05, 0.65)), '#c99466', { spec: 0.3 });
@@ -670,7 +672,6 @@ function drawRoom(t, S) {
   D(m.quad, M4.chain(M4.T(1.25, 2.05, -2.24), M4.S(1.5, 1.3, 1)), [1, 1, 1], { tex: winTex, em: 0.95, spec: 0 });
   for (const [x, y, sx, sy] of [[1.25, 2.73, 1.66, 0.09], [1.25, 1.37, 1.66, 0.09], [0.46, 2.05, 0.09, 1.42], [2.04, 2.05, 0.09, 1.42], [1.25, 2.05, 0.06, 1.3]]) D(m.box, M4.chain(M4.T(x, y, -2.2), M4.S(sx, sy, 0.08)), '#ffffff', { spec: 0.3 });
   // light patch on wall from window (day/night)
-  D(m.quad, M4.chain(M4.T(-0.6, 2.4, -2.245), M4.S(1.6, 1.0, 1)), [1, 0.93, 0.7], { alpha: 0.1 + 0.18 * day, em: 1, spec: 0 });
   // door frame (back wall, left)
   D(m.box, M4.chain(M4.T(-2.05, 1.2, -2.24), M4.S(1.12, 2.45, 0.05)), '#8a5a3a', { spec: 0.2 });
   D(m.box, M4.chain(M4.T(-2.05, 1.17, -2.22), M4.S(0.96, 2.08, 0.05)), '#3a2a22', { spec: 0.1 });
@@ -679,7 +680,7 @@ function drawRoom(t, S) {
   D(m.box, M4.chain(M4.T(0, 0.7, -1.55), M4.S(2.5, 0.8, 0.12)), '#8d6040', { spec: 0.25 });
   D(m.box, M4.chain(M4.T(0, 0.6, 0), M4.S(2.36, 0.14, 2.96)), '#fbfbff', { spec: 0.1 });
   // pillow
-  D(m.sphere, M4.chain(M4.T(HX, 0.74, -0.82), M4.S(1.05, 0.3, 0.62)), '#ffffff', { spec: 0.15 });
+  D(m.sphere, M4.chain(M4.T(HX, 0.66, -0.82), M4.S(1.05, 0.26, 0.62)), '#ffffff', { spec: 0.15 });
   // boxes & milk cartons (no text/logos)
   const R = rng(31);
   for (let i = 0; i < S.boxes; i++) {
@@ -690,24 +691,23 @@ function drawRoom(t, S) {
   }
   // cobweb (top-left corner)
   if (S.web > 0.01) {
-    for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + k * 0.3; const L = 0.9 * S.web; D(m.box, M4.chain(M4.T(-2.74, 3.9, -2.24), M4.RZ(a), M4.T(0, -L / 2, 0), M4.S(0.012, L, 0.012)), '#ffffff', { alpha: 0.6, em: 0.5 }); }
+    for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + k * 0.3; const L = 0.9 * S.web; D(m.box, M4.chain(M4.T(-2.74, 5.2, -2.24), M4.RZ(a), M4.T(0, -L / 2, 0), M4.S(0.012, L, 0.012)), '#ffffff', { alpha: 0.6, em: 0.5 }); }
   }
   // vines
   if (S.vine > 0.01) {
     const VR = rng(44);
     for (let k = 0; k < 9; k++) {
-      const x = -2.6 + k * 0.62, len = (1.2 + VR() * 1.6) * S.vine;
-      D(m.cyl, M4.chain(M4.T(x, 4.1 - len / 2, -2.2), M4.RZ((VR() - 0.5) * 0.3), M4.S(0.05, len, 0.05)), '#2f8f3a', { spec: 0.2 });
-      for (let j = 0; j < 4; j++) if (j / 4 < S.vine) D(m.sphere, M4.chain(M4.T(x + (j % 2 ? 0.09 : -0.09), 4.0 - len * (j + 0.5) / 4, -2.17), M4.S(0.16, 0.1, 0.05)), '#3fae4a', { spec: 0.2 });
+      const x = k < 4 ? -2.6 + k * 0.28 : 1.7 + (k - 4) * 0.22, len = (3.5 + VR() * 2.5) * S.vine;
+      D(m.cyl, M4.chain(M4.T(x, 9.0 - len / 2, -2.2), M4.RZ((VR() - 0.5) * 0.15), M4.S(0.05, len, 0.05)), '#2f8f3a', { spec: 0.2 });
+      for (let j = 0; j < 7; j++) if (j / 7 < S.vine) D(m.sphere, M4.chain(M4.T(x + (j % 2 ? 0.09 : -0.09), 8.9 - len * (j + 0.5) / 7, -2.17), M4.S(0.16, 0.1, 0.05)), '#3fae4a', { spec: 0.2 });
     }
-    for (let k = 0; k < 4; k++) D(m.cyl, M4.chain(M4.T(-1.25 + k * 0.32, 0.62, 1.52), M4.RZ(1.3), M4.S(0.05, 0.5 * S.vine, 0.05)), '#2f8f3a', { spec: 0.2 });
   }
 }
 
 // hero pose: lie = 1 lying, 0 sitting
 function heroBase(lie) {
   const a = -Math.PI / 2 * lie;
-  const hip = [HX, lerp(0.62, 0.84, lie), lerp(-0.25, 0.22, lie)];
+  const hip = [HX, lerp(0.62, 0.68, lie), lerp(-0.25, 0.22, lie)];
   return { base: M4.chain(M4.T(hip[0], hip[1], hip[2]), M4.RX(a), M4.T(0, -0.46, 0)), sit: 1 - lie };
 }
 function heroState(t) {
@@ -733,7 +733,10 @@ function drawHero(t, S) {
   const { base, sit } = heroBase(lie);
   o.sit = sit;
   o.armL = [0.15, 0]; o.armR = [0.15, 0];
+  const night = dayAt(t) < 0.3;
+  const D0 = E.draw; if (night) E.draw = (mm, mat, c, op) => D0(mm, mat, c, Object.assign({}, op || {}, { em: Math.max((op && op.em) || 0, 0.38) }));
   const Hd = drawCharacter(E, base, o);
+  E.draw = D0;
   // 까치집 머리
   for (const [x, z, a, b] of [[-0.18, -0.05, 0.5, -0.3], [0.0, 0.05, 0.0, -0.5], [0.17, -0.02, -0.55, -0.25], [-0.07, -0.2, 0.25, 0.4], [0.12, -0.18, -0.3, 0.45]])
     D(m.cone, M4.chain(Hd, M4.T(x, 0.4, z), M4.RZ(a), M4.RX(b), M4.T(0, 0.08, 0), M4.S(0.11, 0.2, 0.11)), '#1d1d22', { spec: 0.5 });
@@ -741,7 +744,7 @@ function drawHero(t, S) {
   if (S.hair > 0.01) {
     const L = S.hair;
     if (lie >= 0.5) {
-      D(m.sphere, M4.chain(M4.T(HX - 0.1, 0.82, -1.15), M4.S(1.0 + 0.4 * L, 0.16, 0.5 + 0.3 * L)), '#1d1d22', { spec: 0.5 });
+      D(m.sphere, M4.chain(M4.T(HX - 0.1, 0.72, -1.15), M4.S(1.0 + 0.4 * L, 0.16, 0.5 + 0.3 * L)), '#1d1d22', { spec: 0.5 });
     } else {
       D(m.sphere, M4.chain(Hd, M4.T(0, -0.55, -0.32), M4.S(0.86, 1.3, 0.4)), '#1d1d22', { spec: 0.5 });
     }
@@ -762,20 +765,22 @@ function drawHero(t, S) {
 }
 function drawMom(t, S) {
   // 엄마(흰 앞치마·뒤로 묶은 머리·국자). 0~0.8 흐린 실루엣 20%(국자 미끄러짐), 3.4~4.4 문 쾅쾅, 4.4~5.5 또렷 + 국자 땡, 9.2~ 백발
-  let a = 0, x = -2.05, z = -2.0, yaw = 0.35, armR = [0.5, 0.9], armL = [0.2, 0];
-  if (t < 0.8) a = 0.18;
-  else if (t < 1.4) { a = 0.18 * (1 - smooth(0.8, 1.2, t)); z = -2.0 - smooth(0.8, 1.3, t) * 0.2; }
+  let a = 0, x = -1.45, z = -2.0, yaw = 0.35, armR = [0.5, 0.9], armL = [0.2, 0];
+  if (t < 0.8) a = 0; // 0초 실루엣은 검수 video#3 fix 4에 따라 뺌(주인공 머리와 겹침 방지)
+  else if (t < 1.4) { a = 0; }
   else if (t >= 3.4 && t < 4.4) { a = smooth(3.4, 3.55, t); x = -2.05; z = -2.0; yaw = 0.2; armR = [0.5, 1.2 + 0.5 * Math.abs(Math.sin(t * 18))]; }
-  else if (t >= 4.4 && t < 5.5) a = 1;
+  else if (t >= 4.4 && t < 5.75) a = 1;
   else if (t >= 9.2 && t < 11.0) { a = smooth(9.2, 9.28, t); x = -2.05; z = -2.0; yaw = 0.35; }
   else if (t >= 16.6 && t < 18.2) { a = smooth(16.6, 16.7, t); x = -2.05; z = -1.95; }
   if (a < 0.01) return;
   const grey = t >= 9.2;
   const sigh = t >= 16.6 ? Math.sin(clamp((t - 16.9) / 0.9, 0, 1) * Math.PI) : 0;
-  withAlpha(a, () => {
-    const base = M4.mul(M4.T(x, 0, z), M4.S(t < 0.8 ? 1.0 : 1.12));
+  const wrap = t < 1.4 ? withSil : (fn) => withAlpha(a, fn);
+  if (t < 1.4 && t >= 1.1) return;
+  wrap(() => {
+    const base = M4.mul(M4.T(x, 0, z), M4.S(1.12));
     const hairC = grey ? '#e9e9ef' : '#3b2a20';
-    const Hd = drawCharacter(E, base, { shirt: '#7a8cff', vest: '#ffffff', hair: 'bob', hairColor: hairC, pants: '#3a3a44', bodyYaw: yaw, armR, armL, surprise: t >= 4.4 && t < 5.5 ? 0.9 : 0, mouth: t >= 4.4 && t < 5.5 ? 0.8 : (sigh > 0 ? 0.6 * sigh : 0.15), headPitch: sigh * 0.35, eyeDots: t >= 16.6 ? 0.5 : 0 });
+    const Hd = drawCharacter(E, base, { shirt: '#7a8cff', vest: '#ffffff', hair: 'bob', hairColor: hairC, pants: '#3a3a44', bodyYaw: yaw, armR, armL, surprise: t >= 4.4 && t < 5.75 ? 0.9 : 0, mouth: t >= 4.4 && t < 5.75 ? 0.8 : (sigh > 0 ? 0.6 * sigh : 0.15), headPitch: sigh * 0.35, eyeDots: t >= 16.6 ? 0.5 : 0 });
     D(m.sphere, M4.chain(Hd, M4.T(0, 0.3, -0.36), M4.S(0.3)), hairC, { spec: 0.5 }); // 쪽진 머리
     const drop = stuff(t).ladleDropped;
     const hand = M4.apply(M4.chain(base, M4.RY(yaw)), [0.45, 0.62, 0.32]);
@@ -789,28 +794,28 @@ function drawMom(t, S) {
 
 // ---------------- camera ----------------
 // CLOSE = cold-open composition (0초·4.4초 같은 구도)
-const CLOSE = { pos: [1.3, 3.81, 11.45], look: [0.01, 1.9, 0.01], fov: 30 };
-const MORN = { pos: [0.85, 3.7, 11.25], look: [0.01, 1.9, 0.01], fov: 30 };
-const MED = { pos: [-0.95, 3.13, 21.4], look: [-0.22, 2.74, 0.99], fov: 24 };
-const WIDE = { pos: [-0.19, 3.26, 8.15], look: [-0.27, 2.3, 1.24], fov: 50 };
+const CLOSE = { pos: [1.13, 3.02, 6.6], look: [-0.2, 1.47, -0.59], fov: 32 };
+const MORN = { pos: [0.8, 3.05, 6.75], look: [-0.2, 1.47, -0.59], fov: 32 };
+const MED = { pos: [-0.95, 3.13, 21.4], look: [-0.22, 2.6, 0.99], fov: 21 };
+const WIDE = { pos: [-0.19, 3.26, 8.15], look: [-0.12, 2.3, 1.24], fov: 50 };
 const INSERT = { pos: [0.12, 3.77, 5.88], look: [0.49, 2.38, 1.95], fov: 30 }; // 반전 클로즈업: 수염 주인공 손이 '5분만 더'
 const ENDW = { pos: [-0.42, 2.75, 10], look: [-0.37, 2.24, -0.25], fov: 46 };
 const zoomed = (B, f) => ({ pos: B.pos, look: B.look, fov: f });
 const SHOTS = [
-  { t0: 0, snap: true, target: (t) => zoomed(CLOSE, CLOSE.fov - 1.2 * t) },
+  { t0: 0, snap: true, target: (t) => zoomed(CLOSE, CLOSE.fov - 1.5 * t) },
   { t0: 0.8, w: 8, target: (t) => MORN },
-  { t0: 1.4, snap: true, target: (t) => zoomed(MORN, 30 - 0.6 * (t - 1.4)) },
-  { t0: 2.2, snap: true, target: (t) => zoomed(MORN, 29) },
-  { t0: 2.6, snap: true, target: (t) => zoomed(MORN, 28) },
-  { t0: 3.0, snap: true, target: (t) => zoomed(MORN, 27) },
+  { t0: 1.4, snap: true, target: (t) => zoomed(MORN, 32 - 0.6 * (t - 1.4)) },
+  { t0: 2.2, snap: true, target: (t) => zoomed(MORN, 31) },
+  { t0: 2.6, snap: true, target: (t) => zoomed(MORN, 30) },
+  { t0: 3.0, snap: true, target: (t) => zoomed(MORN, 29) },
   { t0: 3.4, w: 5, target: (t) => WIDE },
-  { t0: 4.4, snap: true, target: (t) => zoomed(CLOSE, CLOSE.fov - 0.5 * (t - 4.4)) },
-  { t0: 5.5, w: 4, target: (t) => ({ pos: [WIDE.pos[0] - 0.05 * (t - 5.5), WIDE.pos[1], WIDE.pos[2] - 0.1 * (t - 5.5)], look: WIDE.look, fov: WIDE.fov }) },
+  { t0: 4.4, snap: true, target: (t) => zoomed(CLOSE, CLOSE.fov - 0.6 * (t - 4.4)) },
+  { t0: 5.75, w: 4, target: (t) => ({ pos: [WIDE.pos[0] - 0.05 * (t - 5.75), WIDE.pos[1], WIDE.pos[2] - 0.1 * (t - 5.75)], look: WIDE.look, fov: WIDE.fov }) },
   { t0: 11.0, w: 6, target: (t) => MED },
-  { t0: 12.9, w: 6, target: (t) => zoomed(MED, 22.5) },
-  { t0: 13.9, w: 10, target: (t) => MED },
-  { t0: 14.45, snap: true, target: (t) => zoomed(INSERT, 30 - 1.5 * (t - 14.45)) },
-  { t0: 15.15, snap: true, target: (t) => MED },
+  { t0: 12.9, w: 7, target: (t) => INSERT },
+  { t0: 13.9, w: 9, target: (t) => MED },
+  { t0: 14.25, w: 9, target: (t) => zoomed(INSERT, 30 - 1.5 * (t - 14.25)) },
+  { t0: 15.2, w: 7, target: (t) => MED },
   { t0: 16.6, w: 4, target: (t) => ENDW },
 ];
 function shakeAt(t) {
@@ -830,34 +835,28 @@ function scene(t) {
   const H = drawHero(t, S);
   drawMom(t, S);
   const P = drawPhone(t);
-  if (t < 11.0 && !(t >= 5.5)) {
-    // 이불 밖으로 나온 손(오른쪽 아래에서)
-    drawHand(t, P, [1.08, 1.08, 1.5]); // 소매는 이불 오른쪽 앞 모서리에서 시작
-  } else if (t >= 13.95 && t < 15.6) {
-    // 반전: 어깨에서 손이 혼자 뻗어 나감 (14.0~14.6), 15.5까지 누른 채
-    const sh = t >= 14.45 && t < 15.15 ? [PHONE[0] - 0.55, 1.2, PHONE[2] + 0.35] : [HX + 0.32, 1.45, -0.1];
-    const u = smooth(14.0, 14.6, t) + (t < 14.6 ? 0.03 * Math.sin(t * 40) : 0);
-    drawHand(t, P, sh, clamp(u, 0.12, 1));
-  }
-  // 코골이 방울 (머리 위로만)
-  if (t >= 16.0 && t < 18.0) {
-    for (let k = 0; k < 3; k++) { const u = ((t - 16.0) * 0.8 + k / 3) % 1; D(m.sphere, M4.chain(M4.T(HX + 0.3 + u * 0.4, 1.75 + u * 0.8, -1.1), M4.S(0.07 + u * 0.1)), '#dff3ff', { alpha: 0.8 * (1 - u), em: 0.5 }); }
+  if (t < 3.4 || (t >= 4.4 && t < 5.75)) {
+    // 이불 밖으로 나온 손: 화면 아래에서 올라와 버튼 아래 테두리를 누름
+    drawHand(t, P, M4.apply(P, [0.2, -1.25, 0.35]));
+  } else if (t >= 13.9 && t < 15.5) {
+    // 반전: 손이 혼자 뻗어 나감 (13.95~14.6), 14.6 딸깍, 15.5까지 누른 채
+    const u = smooth(13.95, 14.6, t) + (t < 14.6 ? 0.02 * Math.sin(t * 40) : 0);
+    drawHand(t, P, M4.apply(P, [-1.1, -0.55, 0.3]), clamp(u, 0, 1));
   }
 }
 
 // ---------------- HUD ----------------
 const SUBS = [
-  [0.0, 1.95, '알람 5분만 더<br>눌렀거든.'],
-  [2.15, 5.1, '근데 누를 때마다<br>자는 시간이 두 배야.'],
-  [5.45, 6.97, '이틀이 두 달 되고,'],
+  // 0~5.75초(폰 클로즈업 구간)의 문장1·2 자막은 검수 video#3 fix 1에 따라 표시하지 않음(폰·손가락 가림 방지, 0초 글자 수 줄이기)
+  [5.75, 6.97, '이틀이 두 달 되고,'], // 5.45~5.75는 폰 클로즈업이라 와이드 전환 뒤부터
   [9.25, 11.28, '결국 10년을 잤어.'],
-  [11.5, 13.85, '겨우 깼는데<br>알람이 또 울려.'],
+  [11.5, 12.9, '겨우 깼는데<br>알람이 또 울려.'], // 12.9~13.9는 폰 클로즈업이라 생략
   // 14.15-15.9 "손이 먼저 눌렀어." — 같은 문구가 팝(14.1-16.45)으로 떠 있어 자막은 생략(중복 방지)
 ];
 // [t0, t1, text, px, color]
 const POPS = [
   [0.85, 1.38, '휘리릭', 35], [1.45, 2.12, '띠리리', 44], [2.2, 2.56, '딸깍', 44], [2.6, 2.97, '또 딸깍', 44, '#ffe14d'], [3.0, 3.38, '딸깍', 44],
-  [3.45, 4.36, '쾅쾅', 48], [4.45, 5.45, '999+', 48, '#ff6b81'], [5.55, 7.5, '사르륵', 44], [7.65, 9.1, '쿨쿨', 44], [9.25, 10.9, '쿠구궁', 48],
+  [3.45, 4.36, '쾅쾅', 48], [4.45, 5.7, '999+', 48, '#ff6b81'], [5.8, 7.5, '사르륵', 44], [7.65, 9.1, '쿨쿨', 44], [9.25, 10.9, '쿠구궁', 48],
   [11.05, 12.3, '번쩍', 48, '#ffe14d'], [12.95, 13.9, '띠리리', 44], [14.1, 16.45, '손이 먼저 눌렀어', 40, '#ffe14d'], [16.7, 17.9, '하아…', 44],
 ];
 const ENDT = 18.0;
@@ -873,7 +872,7 @@ function hud(t) {
     $('counterRow').style.opacity = 1;
     C.querySelector('.num').innerHTML = v.toLocaleString('en-US') + '<small>분</small>';
     fitText(C.querySelector('.num'), 48, 290, 30);
-    C.querySelector('.sub').textContent = t < 0.8 ? '이틀째' : (t < 1.3 ? '되감는 중' : subFor(v));
+    C.querySelector('.sub').textContent = t < 0.8 ? '이틀째' : (t < 1.3 ? '' : subFor(v));
     let lc = -9; for (let tt = t; tt > t - 0.3; tt -= 1 / 60) { const w = counterAt(tt); if (w !== v) { lc = tt; break; } }
     let sc = 1 + 0.16 * Math.exp(-(t - lc) * 12);
     if (t >= 14.7 && t < 15.3) sc = 1 + 0.25 * Math.exp(-(t - 14.7) * 7);
@@ -896,7 +895,7 @@ function hud(t) {
   const cv = $('c');
   cv.style.filter = rw ? 'saturate(0.5) contrast(1.15) blur(1.2px)' : (t >= ENDT ? 'brightness(0.72) blur(2px)' : (t >= 15.5 && t < 15.9 ? 'saturate(1.4) contrast(1.1)' : 'none'));
   // flashes
-  let fl = 0; for (const [ft, a] of [[0.8, 0.5], [1.38, 0.35], [5.5, 0.25], [9.2, 0.45], [11.0, 0.7], [14.7, 0.5]]) { const d = t - ft; if (d >= 0 && d < 0.3) fl = Math.max(fl, a * (1 - d / 0.3)); }
+  let fl = 0; for (const [ft, a] of [[0.8, 0.5], [1.38, 0.35], [5.75, 0.4], [9.2, 0.35], [11.0, 0.3], [14.7, 0.25]]) { const d = t - ft; if (d >= 0 && d < 0.3) fl = Math.max(fl, a * (1 - d / 0.3)); }
   $('flash').style.opacity = fl.toFixed(3);
   // end card
   const ec = smooth(ENDT, ENDT + 0.25, t);
@@ -904,7 +903,7 @@ function hud(t) {
   $('end').style.transform = `scale(${(0.85 + 0.15 * easeOutBack((t - ENDT) / 0.35)).toFixed(3)})`;
   $('titleRow').style.opacity = (1 - ec * 0.65).toFixed(3);
   // 배지: 0~1.4초(콜드 오픈) 숨김(0초 글자 줄이기), 엔딩 카드 동안 숨김(EP 표기 중복 방지)
-  $('badgeRow').style.opacity = t < 1.4 ? 0 : (1 - ec).toFixed(3);
+  $('badgeRow').style.opacity = (smooth(1.3, 1.6, t) * (1 - ec)).toFixed(3);
 }
 
 window.DURATION = DURATION;

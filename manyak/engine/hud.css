@@ -19,7 +19,7 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
 #counter .lab{font-size:17px;display:inline-block;background:rgba(0,0,0,.55);padding:2px 9px;border-radius:8px;}
 #counter .num{font-size:48px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
 #counter .num small{font-size:26px;margin-left:3px;}
-#counter .sub{font-size:15px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
+#counter .sub{font-size:15px;margin-top:4px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
 #popRow{top:338px;}
 #pop{font-size:44px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
 #subRow{top:640px;}
@@ -30,5 +30,5 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
 #end .card{background:rgba(20,20,28,.82);border:3px solid #fff;border-radius:24px;padding:20px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
 #end .ep{display:inline-block;font-size:32px;border:3px solid #fff;border-radius:14px;padding:2px 14px 6px;background:#ff6b81;}
 #end .share{font-size:25px;line-height:1.32;margin-top:14px;color:#ffe14d;word-break:keep-all;}
-#end .next{font-size:16px;margin-top:12px;color:#ddd;font-weight:700;}
+#end .next{font-size:17px;margin-top:12px;color:#ddd;font-weight:700;}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;}
