@@ -3,3 +3,5 @@ QA_TIMEOUT brief
 BRIEF_DONE
 NOTE 분석가: 검수과가 사무실 기록에 brief #1 반려를 남김(검수과 push 권한 없음) → 위 BRIEF_DONE 취소, 지적 반영해 재제출
 SUBMIT brief #2 manyak/team/2026-11-21/brief.md
+REJECTED brief #2: [공유대상][콜드오픈스포][근거부족] 친구 먼저→행동 출발점→엔딩·캡션 일치 없음, EP01 공유 비교 교란 단서 부족, 0초 '최종 숫자' 금지 미명시, '화면 절반'은 선택 실험으로, 후보별 친구 유형 없음
+SUBMIT brief #3 manyak/team/2026-11-21/brief.md
