@@ -7,3 +7,4 @@ REJECTED brief #2: [공유대상][콜드오픈스포][근거부족] 친구 먼�
 SUBMIT brief #3 manyak/team/2026-11-21/brief.md
 APPROVED brief #3 (검수과 11:46, 메모: EP03 '80억'은 절정 숫자·최종값 62, 출처·경과시간 표기 사소 5건)
 BRIEF_DONE
+SUBMIT concept #1 manyak/team/2026-11-21/concept.md
