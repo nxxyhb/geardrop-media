@@ -24,3 +24,4 @@ APPROVED knowledge #2 (검수과 12:31, 전 항목 가설·근거 정리 OK · �
 APPROVED knowledge #2 (검수과 12:31)
 KNOWLEDGE_DONE
 SUBMIT video #1 manyak/posts/2026-11-21-snooze-doubles/reel.mp4
+REJECTED video #1: [0초화면][겹침] 초점1 — 0초 이틀째인데 한낮·엄마 실루엣 없음, 주인공 안 읽힘, 글자 과밀+자막이 손 가림, 0~3.4초 정지 구도, 4.4초 확장 안 보임, 팝이 폰과 겹침 (상세·초점2~5 참고 지적: 사무실 qa video#1, qa/video-1.md)
