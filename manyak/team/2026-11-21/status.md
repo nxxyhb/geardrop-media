@@ -12,3 +12,4 @@ REJECTED concept #1: [정렬][콜드오픈스포] 초점1 — 폰·팝·폰 속 
 SUBMIT concept #2 manyak/team/2026-11-21/concept.md
 REJECTED concept #2: [정렬] 초점1 — 카운터 130px '10,485,760분' 등 폭 620px 초과, 팝 '손이 먼저 눌렀어' 90px 초과, 제목·엔딩 크기 미지정, 0초 상자·우유팩 과밀 (상세: 사무실 qa concept#2)
 SUBMIT concept #3 manyak/team/2026-11-21/concept.md
+REJECTED concept #3: [정렬][숫자오류] 초점1 — 엔딩 카드 2줄 표기 잔존(828px 폭 초과), 카운터 '더 잔 시간'이 누적과 불일치(이틀째·10년 잤어). 초점2 PASS (상세: 사무실 qa concept#3)
