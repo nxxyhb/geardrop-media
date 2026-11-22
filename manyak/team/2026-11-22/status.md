@@ -5,3 +5,5 @@ BRIEF_DONE
 SUBMIT concept #1 manyak/team/2026-11-22/concept.md
 REJECTED concept #1: [타이밍] 내레이션3이 우주 컷보다 앞섬·12.0초 장면 모순·힌트 누르는 주체 공백·캡션/태그 스포일
 SUBMIT concept #2 manyak/team/2026-11-22/concept.md
+REJECTED concept #2: [캡션] 공유 요청 줄 '방탈출' 스포일·[타이밍] 5.8초 9·10회 누름 공백, 9~12초 수치 모순, 15.2초 '찌그' 주체 없음·[AI티] 대본3 시작 시각
+SUBMIT concept #3 manyak/team/2026-11-22/concept.md
