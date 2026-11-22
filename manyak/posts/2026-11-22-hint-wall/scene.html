@@ -782,20 +782,29 @@ const SPACEC = { pos: wl(-0.5, 1.6, 3.4), look: wl(-1.3, 1.25, 0.3), fov: 58 };
 const WIDE = { pos: wl(-0.85, 2.5, 7.2), look: wl(-1.15, 1.55, 0.3), fov: 54 };
 const CAFEM = { pos: wl(-1.2, 1.75, 5.6), look: wl(-1.25, 1.25, 0.6), fov: 62 };
 const ENDC = { pos: wl(-0.85, 2.6, 7.8), look: wl(-1.15, 1.55, 0.3), fov: 54 };
+// video #4: 카메라 측면 이동·팬·화각 보정(search.js 로 머리·힌트 간판 크롭 안전 x 50~475 탐색)
+function adj(B, qx, px, py, df) { const f = v3.norm(v3.sub(B.look, B.pos)); const r = v3.norm([-f[2], 0, f[0]]); return { pos: v3.add(B.pos, v3.mul(r, qx)), look: v3.add(B.look, v3.add(v3.mul(r, px), [0, py, 0])), fov: B.fov + df }; }
+Object.assign(COLD, adj(COLD, -0.4, 0, 0, 0));
+Object.assign(MED, adj(MED, -0.4, 0.2, 0, 12));
+Object.assign(MED2, adj(MED2, -0.8, 0.2, 0, 12));
+Object.assign(SPACEC, adj(SPACEC, 0, 0.6, 0.1, 12));
+Object.assign(GUARDC, adj(GUARDC, -0.8, 0.2, -0.3, 8));
+Object.assign(LOWUP, adj(LOWUP, -0.8, 0.2, 0, 0));
+const BUMP = -0.08;
 const mixCam = (A, B, u) => ({ pos: v3.lerp(A.pos, B.pos, u), look: v3.lerp(A.look, B.look, u), fov: lerp(A.fov, B.fov, u) });
 const zoomed = (B, f) => ({ pos: B.pos, look: B.look, fov: f });
 const SHOTS = [
   { t0: 0, snap: true, target: (t) => zoomed(COLD, 64 - 2.5 * t) },
-  { t0: 0.8, snap: true, target: (t) => mixCam(zoomed(COLD, 62), MED, smooth(0.8, 1.08, t)) },
-  { t0: 1.1, snap: true, target: (t) => zoomed(MED, 40 - 1.5 * (t - 1.1)) },
+  { t0: 0.8, snap: true, target: (t) => { const u = smooth(0.8, 1.08, t); const C = mixCam(zoomed(COLD, 62), MED, u); return adj(C, 0, BUMP * Math.sin(Math.PI * u), 0, 0); } },
+  { t0: 1.1, snap: true, target: (t) => zoomed(MED, 52 - 1.5 * (t - 1.1)) },
   { t0: 2.1, w: 4.5, target: (t) => GROW },
   { t0: 3.6, snap: true, target: (t) => ({ pos: LOWUP.pos, look: v3.add(LOWUP.look, [0, 0.8 * (t - 3.6), 0]), fov: LOWUP.fov }) },
   { t0: 5.8, snap: true, target: (t) => ({ pos: WORM.pos, look: v3.add(WORM.look, [0, 4 * smooth(5.9, 6.8, t), 0]), fov: WORM.fov }) },
-  { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 58 - 1.2 * (t - 6.8)) },
+  { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 66 - 1.2 * (t - 6.8)) },
   { t0: 7.8, snap: true, target: (t) => zoomed(PLANEC, 64 - 1.5 * (t - 7.8)) },
   { t0: 9.4, snap: true, target: (t) => zoomed(BTNC, 40 - 2 * (t - 9.4)) },
-  { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 43 - 1 * (t - 10.8)) },
-  { t0: 12.0, snap: true, target: (t) => zoomed(SPACEC, 60 - 1.5 * (t - 12)) },
+  { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 55 - 1 * (t - 10.8)) },
+  { t0: 12.0, snap: true, target: (t) => zoomed(SPACEC, 72 - 1.5 * (t - 12)) },
   { t0: T_REV, snap: true, target: (t) => mixCam(MED2, WIDE, 0.78 + 0.22 * easeOut((t - T_REV) / 0.3)) },
   { t0: 15.2, w: 3, target: (t) => CAFEM },
   { t0: ENDT, w: 3, target: (t) => ENDC },
