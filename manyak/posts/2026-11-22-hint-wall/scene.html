@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>만약에 EP05 힌트 담장</title>
+<style>
+/* 만약에 공통 HUD v2 (EP04~) — 계정 주인 지시 '가운데 정렬' (CSS 540x960 기준)
+   모든 글자 블록: 가로 중심 270px, text-align:center, 가로 100..440px 안(폭 최대 340px).
+   가운데 배치는 바깥 래퍼(.row: left:0; right:0; flex; justify-content:center)로만.
+   애니메이션(scale·translateY)은 안쪽 요소(.in)에만. translateX(-50%)·left 고정값 금지.
+   세로: 배지 118 · 제목 142(2줄, ≤34px) · 카운터 제목 바로 아래 · 팝 300~460 · 자막 640.
+   위 115px 위·아래 720px 아래 중요한 글자 금지. 검사: window.hudCheck() (engine.js), crop=880:1920:100:0 */
+html,body{margin:0;padding:0;background:#000;}
+#stage{position:relative;width:540px;height:960px;overflow:hidden;font-family:'Noto Sans CJK KR','Noto Sans KR',sans-serif;font-weight:900;}
+canvas{position:absolute;left:0;top:0;width:540px;height:960px;}
+.row{position:absolute;left:0;right:0;display:flex;justify-content:center;pointer-events:none;}
+.row>.in{max-width:340px;text-align:center;word-break:keep-all;}
+#badgeRow{top:118px;}
+#badge{display:inline-block;border:2.5px solid #fff;border-radius:10px;padding:1px 10px 3px;font-size:15px;color:#fff;background:rgba(255,107,129,.92);letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+#titleRow{top:144px;}
+#title{font-size:30px;line-height:1.18;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.55);-webkit-text-stroke:1.5px rgba(0,0,0,.6);paint-order:stroke fill;}
+#title .y{color:#ffe14d;}
+#counterRow{top:222px;}
+#counter{color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.6);transform-origin:center top;display:flex;flex-direction:column;align-items:center;}
+#counter .lab{font-size:17px;display:inline-block;background:rgba(0,0,0,.55);padding:2px 9px;border-radius:8px;}
+#counter .num{font-size:48px;line-height:1.05;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap;}
+#counter .num small{font-size:26px;margin-left:3px;}
+#counter .sub{font-size:15px;margin-top:4px;color:#ffe14d;-webkit-text-stroke:3px #111;paint-order:stroke fill;}
+#popRow{top:338px;}
+#pop{font-size:44px;color:#fff;-webkit-text-stroke:7px #111;paint-order:stroke fill;white-space:nowrap;transform-origin:center center;}
+#subRow{top:640px;}
+#sub{font-size:29px;line-height:1.25;color:#fff;-webkit-text-stroke:6px #000;paint-order:stroke fill;}
+#sub .q{color:#ffe14d;}
+#endRow{top:300px;opacity:0;}
+#end{width:320px;color:#fff;transform-origin:center center;}
+#end .card{background:rgba(20,20,28,.82);border:3px solid #fff;border-radius:24px;padding:20px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.45);}
+#end .ep{display:inline-block;font-size:32px;border:3px solid #fff;border-radius:14px;padding:2px 14px 6px;background:#ff6b81;}
+#end .share{font-size:25px;line-height:1.32;margin-top:14px;color:#ffe14d;word-break:keep-all;}
+#end .next{font-size:17px;margin-top:12px;color:#ddd;font-weight:700;}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;}
+
+</style>
+<style>
+  #counterRow{top:190px;}
+  #counter .sub{display:inline-block;font-size:17px;margin-top:5px;padding:1px 10px 2px;border-radius:9px;background:rgba(0,0,0,.5);-webkit-text-stroke:0;color:#ffe14d;}
+  #popRow{top:318px;}
+  #rew{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.13) 0 3px,rgba(0,0,0,0) 3px 9px);}
+  #end .neon{display:inline-block;font-size:30px;color:#fff;letter-spacing:2px;padding:2px 14px 4px;border:3px solid #ff5fa2;border-radius:12px;text-shadow:0 0 6px #ff5fa2,0 0 14px #ff5fa2;box-shadow:0 0 12px rgba(255,95,162,.8),inset 0 0 10px rgba(255,95,162,.6);margin-bottom:12px;}
+  #end .ep{font-size:26px;}
+  #end .share{font-size:24px;}
+</style></head>
+<body><div id="stage">
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="rew"></div>
+<div class="row" id="badgeRow"><div class="in"><span id="badge" class="t">만약에 EP05</span></div></div>
+<div class="row" id="titleRow"><div class="in t" id="title">만약 <span class="y">힌트</span> 쓸 때마다?</div></div>
+<div class="row" id="counterRow"><div class="in" id="counter"><div class="lab t">담장 높이</div><div class="num t">2,048<small>m</small></div><div class="sub t">힌트 10회</div></div></div>
+<div class="row" id="popRow"><div class="in t" id="pop"></div></div>
+<div class="row" id="subRow"><div class="in t" id="sub"></div></div>
+<div class="row" id="endRow"><div class="in" id="end"><div class="card"><div class="neon t">탈출카페</div><br><div class="ep t">만약에 EP05</div><div class="share t">방탈출 가면 힌트부터<br>찾는 친구한테 보내기</div><div class="next t">다음 만약에는 수요일 저녁 7시</div></div></div></div>
+<div id="flash"></div>
+</div>
+<script>
+// 만약에 3D mini engine (WebGL1, no dependencies)
+// Usage: const E = MiniEngine(canvas); E.begin(cam); E.draw(mesh, matrix, opts); E.end();
+(function (global) {
+  'use strict';
+  // ---------- math (column-major 4x4) ----------
+  const M4 = {
+    I() { const m = new Float32Array(16); m[0] = m[5] = m[10] = m[15] = 1; return m; },
+    mul(a, b) {
+      const o = new Float32Array(16);
+      for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+        let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k];
+        o[c * 4 + r] = s;
+      }
+      return o;
+    },
+    T(x, y, z) { const m = M4.I(); m[12] = x; m[13] = y; m[14] = z; return m; },
+    S(x, y, z) { const m = M4.I(); m[0] = x; m[5] = (y === undefined ? x : y); m[10] = (z === undefined ? x : z); return m; },
+    RX(a) { const m = M4.I(), c = Math.cos(a), s = Math.sin(a); m[5] = c; m[6] = s; m[9] = -s; m[10] = c; return m; },
+    RY(a) { const m = M4.I(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[2] = -s; m[8] = s; m[10] = c; return m; },
+    RZ(a) { const m = M4.I(), c = Math.cos(a), s = Math.sin(a); m[0] = c; m[1] = s; m[4] = -s; m[5] = c; return m; },
+    persp(fovy, asp, n, f) {
+      const t = 1 / Math.tan(fovy / 2), m = new Float32Array(16);
+      m[0] = t / asp; m[5] = t; m[10] = (f + n) / (n - f); m[11] = -1; m[14] = 2 * f * n / (n - f); return m;
+    },
+    lookAt(e, c, u) {
+      let zx = e[0] - c[0], zy = e[1] - c[1], zz = e[2] - c[2];
+      let l = Math.hypot(zx, zy, zz); zx /= l; zy /= l; zz /= l;
+      let xx = u[1] * zz - u[2] * zy, xy = u[2] * zx - u[0] * zz, xz = u[0] * zy - u[1] * zx;
+      l = Math.hypot(xx, xy, xz); xx /= l; xy /= l; xz /= l;
+      const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+      const m = M4.I();
+      m[0] = xx; m[4] = xy; m[8] = xz; m[1] = yx; m[5] = yy; m[9] = yz; m[2] = zx; m[6] = zy; m[10] = zz;
+      m[12] = -(xx * e[0] + xy * e[1] + xz * e[2]);
+      m[13] = -(yx * e[0] + yy * e[1] + yz * e[2]);
+      m[14] = -(zx * e[0] + zy * e[1] + zz * e[2]);
+      return m;
+    },
+    // chain helper: M4.chain(T(...), RY(...), S(...))
+    chain(...ms) { let o = ms[0]; for (let i = 1; i < ms.length; i++) o = M4.mul(o, ms[i]); return o; },
+    normal3(m) {
+      const a = m[0], b = m[4], c = m[8], d = m[1], e = m[5], f = m[9], g = m[2], h = m[6], i = m[10];
+      const A = e * i - f * h, B = -(d * i - f * g), C = d * h - e * g;
+      const D = -(b * i - c * h), E = a * i - c * g, F = -(a * h - b * g);
+      const G = b * f - c * e, H = -(a * f - c * d), I = a * e - b * d;
+      let det = a * A + b * B + c * C; if (Math.abs(det) < 1e-12) det = 1e-12;
+      // inverse transpose = cofactor / det, column-major
+      return new Float32Array([A / det, B / det, C / det, D / det, E / det, F / det, G / det, H / det, I / det]);
+    },
+    apply(m, p) {
+      return [m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]];
+    }
+  };
+
+  // ---------- helpers ----------
+  function hex(h) { const n = parseInt(h.replace('#', ''), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+  function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const easeOutBack = (t) => { t = clamp(t, 0, 1); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+  // ---------- mesh generators (non-indexed) ----------
+  function sphereGeo(lat, lon, thetaMax) {
+    thetaMax = thetaMax || Math.PI;
+    const P = [], N = [], U = [];
+    const pt = (i, j) => {
+      const th = i / lat * thetaMax, ph = j / lon * Math.PI * 2;
+      const x = Math.sin(th) * Math.sin(ph), y = Math.cos(th), z = Math.sin(th) * Math.cos(ph);
+      return [x * 0.5, y * 0.5, z * 0.5, x, y, z, j / lon, 1 - i / lat];
+    };
+    for (let i = 0; i < lat; i++) for (let j = 0; j < lon; j++) {
+      const a = pt(i, j), b = pt(i + 1, j), c = pt(i + 1, j + 1), d = pt(i, j + 1);
+      for (const v of [a, b, c, a, c, d]) { P.push(v[0], v[1], v[2]); N.push(v[3], v[4], v[5]); U.push(v[6], v[7]); }
+    }
+    return { P, N, U };
+  }
+  function pushFlatTri(G, a, b, c, ua, ub, uc) {
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+    for (const p of [a, b, c]) { G.P.push(p[0], p[1], p[2]); G.N.push(nx, ny, nz); }
+    G.U.push(...(ua || [0, 0]), ...(ub || [1, 0]), ...(uc || [1, 1]));
+  }
+  function boxGeo() {
+    const G = { P: [], N: [], U: [] };
+    const f = (a, b, c, d) => { pushFlatTri(G, a, b, c, [0, 0], [1, 0], [1, 1]); pushFlatTri(G, a, c, d, [0, 0], [1, 1], [0, 1]); };
+    const h = 0.5, v = (x, y, z) => [x * h, y * h, z * h];
+    f(v(-1, -1, 1), v(1, -1, 1), v(1, 1, 1), v(-1, 1, 1));
+    f(v(1, -1, -1), v(-1, -1, -1), v(-1, 1, -1), v(1, 1, -1));
+    f(v(1, -1, 1), v(1, -1, -1), v(1, 1, -1), v(1, 1, 1));
+    f(v(-1, -1, -1), v(-1, -1, 1), v(-1, 1, 1), v(-1, 1, -1));
+    f(v(-1, 1, 1), v(1, 1, 1), v(1, 1, -1), v(-1, 1, -1));
+    f(v(-1, -1, -1), v(1, -1, -1), v(1, -1, 1), v(-1, -1, 1));
+    return G;
+  }
+  // cylinder along y, height 1 (-0.5..0.5); rTop/rBot radius; smooth sides
+  function cylGeo(seg, rTop, rBot, caps, flat, noise) {
+    const G = { P: [], N: [], U: [] };
+    const R = rng(77);
+    const jit = [];
+    for (let j = 0; j <= seg; j++) jit.push(j === seg ? jit[0] : 1 + (noise ? (R() - 0.5) * noise : 0));
+    const slope = (rBot - rTop);
+    for (let j = 0; j < seg; j++) {
+      const a0 = j / seg * Math.PI * 2, a1 = (j + 1) / seg * Math.PI * 2;
+      const p = (a, r, y, k) => [Math.sin(a) * r * jit[k], y, Math.cos(a) * r * jit[k]];
+      const b0 = p(a0, rBot, -0.5, j), b1 = p(a1, rBot, -0.5, j + 1), t0 = p(a0, rTop, 0.5, j), t1 = p(a1, rTop, 0.5, j + 1);
+      if (flat) {
+        pushFlatTri(G, b0, b1, t1, [j / seg, 0], [(j + 1) / seg, 0], [(j + 1) / seg, 1]);
+        if (rTop > 0.0001) pushFlatTri(G, b0, t1, t0, [j / seg, 0], [(j + 1) / seg, 1], [j / seg, 1]);
+      } else {
+        const n = (a) => { const nx = Math.sin(a), nz = Math.cos(a), ny = slope; const l = Math.hypot(nx, ny, nz); return [nx / l, ny / l, nz / l]; };
+        const n0 = n(a0), n1 = n(a1);
+        const tri = [[b0, n0, [j / seg, 0]], [b1, n1, [(j + 1) / seg, 0]], [t1, n1, [(j + 1) / seg, 1]], [b0, n0, [j / seg, 0]], [t1, n1, [(j + 1) / seg, 1]], [t0, n0, [j / seg, 1]]];
+        for (const [pp, nn, uu] of tri) { G.P.push(...pp); G.N.push(...nn); G.U.push(...uu); }
+      }
+      if (caps) {
+        if (rTop > 0.0001) { const c = [0, 0.5, 0]; for (const [pp, uu] of [[c, [0.5, 0.5]], [t0, [0, 0]], [t1, [1, 0]]]) { G.P.push(...pp); G.N.push(0, 1, 0); G.U.push(...uu); } }
+        const c = [0, -0.5, 0]; for (const [pp, uu] of [[c, [0.5, 0.5]], [b1, [1, 0]], [b0, [0, 0]]]) { G.P.push(...pp); G.N.push(0, -1, 0); G.U.push(...uu); }
+      }
+    }
+    return G;
+  }
+  // disc in XY plane facing +z, radius 0.5
+  function discGeo(seg) {
+    const G = { P: [], N: [], U: [] };
+    for (let j = 0; j < seg; j++) {
+      const a0 = j / seg * Math.PI * 2, a1 = (j + 1) / seg * Math.PI * 2;
+      const pts = [[0, 0], [Math.cos(a0) * 0.5, Math.sin(a0) * 0.5], [Math.cos(a1) * 0.5, Math.sin(a1) * 0.5]];
+      for (const p of pts) { G.P.push(p[0], p[1], 0); G.N.push(0, 0, 1); G.U.push(p[0] + 0.5, p[1] + 0.5); }
+    }
+    return G;
+  }
+  function quadGeo() {
+    const G = { P: [], N: [], U: [] };
+    const v = [[-0.5, -0.5, 0, 0], [0.5, -0.5, 1, 0], [0.5, 0.5, 1, 1], [-0.5, -0.5, 0, 0], [0.5, 0.5, 1, 1], [-0.5, 0.5, 0, 1]];
+    for (const p of v) { G.P.push(p[0], p[1], 0); G.N.push(0, 0, 1); G.U.push(p[2], p[3]); }
+    return G;
+  }
+  // triangular prism (triangle kimbap shape) axis z, slightly rounded by bevel
+  function prismGeo() {
+    const G = { P: [], N: [], U: [] };
+    const tri = [[0, 0.5], [-0.5, -0.36], [0.5, -0.36]];
+    const d = 0.19;
+    const F = tri.map(p => [p[0], p[1], d]), B = tri.map(p => [p[0], p[1], -d]);
+    pushFlatTri(G, F[0], F[1], F[2], [0.5, 1], [0, 0], [1, 0]);
+    pushFlatTri(G, B[0], B[2], B[1], [0.5, 1], [1, 0], [0, 0]);
+    for (let i = 0; i < 3; i++) {
+      const j = (i + 1) % 3;
+      pushFlatTri(G, F[i], B[i], B[j]); pushFlatTri(G, F[i], B[j], F[j]);
+    }
+    return G;
+  }
+
+  function MiniEngine(canvas) {
+    const gl = canvas.getContext('webgl', { antialias: true, preserveDrawingBuffer: true, alpha: false });
+    if (!gl) throw new Error('no webgl');
+    gl.getExtension('OES_standard_derivatives');
+    const VS = `attribute vec3 aP;attribute vec3 aN;attribute vec2 aU;uniform mat4 uM;uniform mat4 uVP;uniform mat3 uNM;
+      varying vec3 vN;varying vec3 vW;varying vec2 vU;
+      void main(){vec4 w=uM*vec4(aP,1.0);vW=w.xyz;vN=uNM*aN;vU=aU;gl_Position=uVP*w;}`;
+    const FS = `precision highp float;varying vec3 vN;varying vec3 vW;varying vec2 vU;
+      uniform vec3 uC;uniform vec3 uCam;uniform vec3 uL;uniform vec3 uFog;uniform vec3 uSky;uniform vec3 uGnd;
+      uniform float uFN;uniform float uFF;uniform float uA;uniform float uEm;uniform float uSp;uniform float uTx;uniform sampler2D uT;uniform vec2 uTR;
+      void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 base=uC;float a=uA;
+        if(uTx>0.5){vec4 t=texture2D(uT,vU*uTR);base*=t.rgb;a*=t.a;}
+        if(a<0.01)discard;
+        vec3 V=normalize(uCam-vW);vec3 L=normalize(uL);float ndl=max(dot(N,L),0.0);
+        vec3 amb=mix(uGnd,uSky,N.y*0.5+0.5);vec3 H=normalize(L+V);
+        float sp=pow(max(dot(N,H),0.0),48.0)*uSp;float rim=pow(1.0-max(dot(N,V),0.0),3.0)*0.32;
+        vec3 c=base*(amb*0.62+ndl*vec3(1.0,0.97,0.92)*0.72)+vec3(sp)+rim*vec3(1.0,0.96,0.92);
+        c=mix(c,base,uEm);
+        float d=length(uCam-vW);float f=clamp((d-uFN)/(uFF-uFN),0.0,1.0);f=f*f;
+        c=mix(c,uFog,f);gl_FragColor=vec4(c,a);}`;
+    const BVS = `attribute vec2 aP;varying float vY;void main(){vY=aP.y*0.5+0.5;gl_Position=vec4(aP,0.999,1.0);}`;
+    const BFS = `precision mediump float;varying float vY;uniform vec3 uTop;uniform vec3 uBot;void main(){gl_FragColor=vec4(mix(uBot,uTop,smoothstep(0.0,1.0,vY)),1.0);}`;
+    function prog(vs, fs) {
+      const p = gl.createProgram();
+      for (const [t, s] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+        const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+        gl.attachShader(p, sh);
+      }
+      gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+      const u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+      for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(p, i); u[info.name] = gl.getUniformLocation(p, info.name); }
+      return { p, u, aP: gl.getAttribLocation(p, 'aP'), aN: gl.getAttribLocation(p, 'aN'), aU: gl.getAttribLocation(p, 'aU') };
+    }
+    const MP = prog(VS, FS), BP = prog(BVS, BFS);
+    const bgBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+
+    function mesh(G) {
+      const mk = (a) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(a), gl.STATIC_DRAW); return b; };
+      return { p: mk(G.P), n: mk(G.N), u: mk(G.U), count: G.P.length / 3 };
+    }
+    const meshes = {
+      sphere: mesh(sphereGeo(16, 24)),
+      hemi: mesh(sphereGeo(8, 24, Math.PI / 2)),
+      box: mesh(boxGeo()),
+      cyl: mesh(cylGeo(18, 0.5, 0.5, true)),
+      cone: mesh(cylGeo(18, 0.0, 0.5, true)),
+      disc: mesh(discGeo(28)),
+      quad: mesh(quadGeo()),
+      prism: mesh(prismGeo()),
+      mountain: mesh(cylGeo(28, 0.0, 0.5, false, true, 0.18)),
+    };
+    function texture(drawFn, w, h, repeat) {
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d'); drawFn(ctx, w, h);
+      const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      const wrap = repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+      return t;
+    }
+    let list = [], cam = null, env = null;
+    function begin(c, e) { list = []; cam = c; env = e; }
+    function draw(m, mat, color, o) {
+      o = o || {};
+      list.push({ m, mat, color: typeof color === 'string' ? hex(color) : color, a: o.alpha === undefined ? 1 : o.alpha, em: o.em || 0, sp: o.spec === undefined ? 0.35 : o.spec, tex: o.tex || null, tr: o.tr || [1, 1], tp: (o.alpha !== undefined && o.alpha < 1) || o.transparent });
+    }
+    function end() {
+      const W = canvas.width, H = canvas.height;
+      gl.viewport(0, 0, W, H);
+      gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      // background gradient
+      gl.disable(gl.DEPTH_TEST); gl.useProgram(BP.p);
+      gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf); gl.enableVertexAttribArray(BP.aP); gl.vertexAttribPointer(BP.aP, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform3fv(BP.u.uTop, env.skyTop); gl.uniform3fv(BP.u.uBot, env.skyBot); gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disableVertexAttribArray(BP.aP);
+      gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+      gl.useProgram(MP.p);
+      const proj = M4.persp(cam.fov * Math.PI / 180, W / H, cam.near || 0.05, cam.far || 3000);
+      const view = M4.lookAt(cam.pos, cam.look, cam.up || [0, 1, 0]);
+      const vp = M4.mul(proj, view);
+      const U = MP.u;
+      gl.uniformMatrix4fv(U.uVP, false, vp); gl.uniform3fv(U.uCam, cam.pos); gl.uniform3fv(U.uL, env.light);
+      gl.uniform3fv(U.uFog, env.fog); gl.uniform3fv(U.uSky, env.amb); gl.uniform3fv(U.uGnd, env.gnd);
+      gl.uniform1f(U.uFN, env.fogNear); gl.uniform1f(U.uFF, env.fogFar); gl.uniform1i(U.uT, 0);
+      for (const a of [MP.aP, MP.aN, MP.aU]) gl.enableVertexAttribArray(a);
+      const op = list.filter(d => !d.tp), tr = list.filter(d => d.tp);
+      const dist = (d) => { const p = [d.mat[12], d.mat[13], d.mat[14]]; return Math.hypot(p[0] - cam.pos[0], p[1] - cam.pos[1], p[2] - cam.pos[2]); };
+      tr.sort((a, b) => dist(b) - dist(a));
+      let lastMesh = null;
+      const run = (d) => {
+        if (d.m !== lastMesh) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, d.m.p); gl.vertexAttribPointer(MP.aP, 3, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer(gl.ARRAY_BUFFER, d.m.n); gl.vertexAttribPointer(MP.aN, 3, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer(gl.ARRAY_BUFFER, d.m.u); gl.vertexAttribPointer(MP.aU, 2, gl.FLOAT, false, 0, 0);
+          lastMesh = d.m;
+        }
+        gl.uniformMatrix4fv(U.uM, false, d.mat); gl.uniformMatrix3fv(U.uNM, false, M4.normal3(d.mat));
+        gl.uniform3fv(U.uC, d.color); gl.uniform1f(U.uA, d.a); gl.uniform1f(U.uEm, d.em); gl.uniform1f(U.uSp, d.sp);
+        if (d.tex) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, d.tex); gl.uniform1f(U.uTx, 1); gl.uniform2fv(U.uTR, d.tr); } else gl.uniform1f(U.uTx, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, d.m.count);
+      };
+      gl.disable(gl.BLEND); gl.depthMask(true);
+      op.forEach(run);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+      tr.forEach(run);
+      gl.depthMask(true); gl.disable(gl.BLEND);
+      return vp;
+    }
+    return { gl, meshes, texture, begin, draw, end, M4, hex };
+  }
+
+  // ---------- spring camera (deterministic) ----------
+  // shots: [{t0, target(t) -> {pos,look,fov}, w (omega)}]; returns camera at time t
+  function springCamera(shots, t, extraShake) {
+    let si = 0; for (let i = 0; i < shots.length; i++) if (t >= shots[i].t0) si = i;
+    const S = shots[si], w = S.w || 6, dt = 1 / 120;
+    const tgt0 = S.target(S.t0);
+    let pos = tgt0.pos.slice(), look = tgt0.look.slice(), fov = tgt0.fov || 40, vp = [0, 0, 0], vl = [0, 0, 0], vf = 0;
+    if (S.snap) { const c = S.target(t); return Object.assign({}, c, { fov: c.fov || 40 }); }
+    for (let tt = S.t0; tt < t; tt += dt) {
+      const g = S.target(Math.min(tt + dt, t));
+      for (let k = 0; k < 3; k++) {
+        vp[k] += (w * w * (g.pos[k] - pos[k]) - 2 * w * vp[k]) * dt; pos[k] += vp[k] * dt;
+        vl[k] += (w * w * (g.look[k] - look[k]) - 2 * w * vl[k]) * dt; look[k] += vl[k] * dt;
+      }
+      const gf = g.fov || 40; vf += (w * w * (gf - fov) - 2 * w * vf) * dt; fov += vf * dt;
+    }
+    if (extraShake) { pos = pos.map((v, k) => v + extraShake[k]); look = look.map((v, k) => v + extraShake[k] * 0.6); }
+    return { pos, look, fov };
+  }
+
+  // ---------- character (series standard) ----------
+  // o: {sit 0..1 (legs forward, put base at seat height - 0.46),
+  //     shirt, hair:'bob'|'short', hairColor, pants, surprise 0..1, mouth 0..1, eyeDots 0..1, headYaw, headPitch, bodyYaw, blink 0..1, hood, vest, armL, armR (angles), talk}
+  function drawCharacter(E, base, o) {
+    const { M4 } = E; const m = E.meshes; const D = (mesh, mat, c, op) => E.draw(mesh, mat, c, op);
+    const skin = '#f3cdb8', pants = o.pants || '#26262e';
+    const B = M4.mul(base, M4.RY(o.bodyYaw || 0));
+    const sp = { spec: 0.45 };
+    // legs + shoes
+    for (const s of [-1, 1]) {
+      const lk = (o.legSwing || 0) * s - (o.sit || 0) * Math.PI / 2;
+      const L = M4.chain(B, M4.T(0.12 * s, 0.46, 0), M4.RX(lk));
+      D(m.cyl, M4.chain(L, M4.T(0, -0.22, 0), M4.S(0.17, 0.46, 0.17)), pants, sp);
+      D(m.sphere, M4.chain(L, M4.T(0, -0.44, 0.05), M4.S(0.2, 0.12, 0.28)), '#3a3a44', sp);
+    }
+    // body
+    const shirt = o.shirt || '#ff6b81';
+    D(m.sphere, M4.chain(B, M4.T(0, 0.8, 0), M4.S(0.64, 0.74, 0.54)), shirt, sp);
+    if (o.vest) {
+      D(m.sphere, M4.chain(B, M4.T(0, 0.8, 0.012), M4.S(0.665, 0.72, 0.56)), o.vest, sp);
+      D(m.sphere, M4.chain(B, M4.T(0, 0.86, 0.2), M4.S(0.2, 0.5, 0.18)), '#ffffff', sp);
+      D(m.box, M4.chain(B, M4.T(0.16, 0.95, 0.265), M4.RX(-0.3), M4.S(0.12, 0.06, 0.02)), '#ffffff', { spec: 0.1 });
+    }
+    if (o.hood) {
+      D(m.sphere, M4.chain(B, M4.T(0, 1.1, -0.16), M4.S(0.5, 0.22, 0.3)), shirt, sp);
+      // pocket
+      D(m.sphere, M4.chain(B, M4.T(0, 0.66, 0.235), M4.S(0.34, 0.16, 0.08)), '#ef5a72', sp);
+    }
+    // arms (o.noArms: 장면에서 limb로 직접 그림 — 손바닥 누르기·무릎 위 손 등)
+    if (!o.noArms) for (const s of [-1, 1]) {
+      const ang = s < 0 ? (o.armL || [0.25, 0]) : (o.armR || [0.25, 0]);
+      const A = M4.chain(B, M4.T(0.3 * s, 1.0, 0), M4.RZ(ang[0] * s), M4.RX(-ang[1]));
+      D(m.cyl, M4.chain(A, M4.T(0, -0.2, 0), M4.S(0.14, 0.42, 0.14)), shirt, sp);
+      D(m.sphere, M4.chain(A, M4.T(0, -0.44, 0), M4.S(0.17)), skin, sp);
+    }
+    // head
+    const Hd = M4.chain(B, M4.T(0, 1.12, 0), M4.RY(o.headYaw || 0), M4.RX(o.headPitch || 0), M4.RZ(o.headRoll || 0), M4.T(0, 0.36, 0));
+    const hr = 0.88; // diameter
+    D(m.sphere, M4.mul(Hd, M4.S(hr)), skin, { spec: 0.25 });
+    const hairC = o.hairColor || '#1d1d22';
+    if (o.hair === 'short') {
+      D(m.hemi, M4.chain(Hd, M4.T(0, 0.02, -0.02), M4.RX(-0.25), M4.S(0.93, 0.95, 0.93)), hairC, { spec: 0.5 });
+    } else {
+      D(m.hemi, M4.chain(Hd, M4.T(0, 0.0, 0), M4.RX(-0.12), M4.S(0.95)), hairC, { spec: 0.55 });
+      D(m.sphere, M4.chain(Hd, M4.T(0, -0.08, -0.09), M4.S(0.93, 0.82, 0.84)), hairC, { spec: 0.55 });
+    }
+    const sur = o.surprise || 0, dots = o.eyeDots || 0, blink = o.blink || 0;
+    const eyeS = (1 + sur * 0.3) * (1 - dots * 0.62);
+    for (const s of [-1, 1]) {
+      const ey = M4.chain(Hd, M4.T(0.15 * s + (o.gazeX || 0) * 0.045, -0.09 + (o.gazeY || 0) * 0.03, 0.392));
+      D(m.sphere, M4.mul(ey, M4.S(0.12 * eyeS, 0.17 * eyeS * (1 - blink * 0.9), 0.07)), '#16161b', { spec: 0.9 });
+      if (dots < 0.5 && blink < 0.5) D(m.sphere, M4.chain(ey, M4.T(0.025 * eyeS, 0.04 * eyeS, 0.03), M4.S(0.045 * eyeS)), '#ffffff', { em: 0.8 });
+      D(m.sphere, M4.chain(Hd, M4.T(0.25 * s, -0.2, 0.3), M4.S(0.13, 0.07, 0.04)), '#ff98a8', { em: 0.3, spec: 0.1 });
+      const br = M4.chain(Hd, M4.T(0.15 * s, 0.035 + sur * 0.05, 0.405), M4.RZ((o.browTilt || 0) * s - sur * 0.18 * s), M4.S(0.12, 0.026, 0.03));
+      D(m.box, br, hairC, { spec: 0.1 });
+    }
+    D(m.sphere, M4.chain(Hd, M4.T(0, -0.17, 0.41), M4.S(0.065, 0.055, 0.05)), '#e9b39c', { spec: 0.3 });
+    const mo = clamp(o.mouth || 0, 0, 1.2);
+    D(m.sphere, M4.chain(Hd, M4.T(0, -0.285 - mo * 0.02, 0.33), M4.S(0.11 + mo * 0.05, 0.035 + mo * 0.12, 0.05)), '#7a2230', { spec: 0.2 });
+    return Hd;
+  }
+
+
+  // ---------- basis matrix: up = local +y, fwd = local +z (character faces +z) ----------
+  function basis(pos, up, fwd, s) {
+    const n = (v) => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+    const Y = n(up); const d = fwd[0] * Y[0] + fwd[1] * Y[1] + fwd[2] * Y[2];
+    let Z = n([fwd[0] - Y[0] * d, fwd[1] - Y[1] * d, fwd[2] - Y[2] * d]);
+    const X = [Y[1] * Z[2] - Y[2] * Z[1], Y[2] * Z[0] - Y[0] * Z[2], Y[0] * Z[1] - Y[1] * Z[0]];
+    s = s || 1; const m = M4.I();
+    m[0] = X[0] * s; m[1] = X[1] * s; m[2] = X[2] * s; m[4] = Y[0] * s; m[5] = Y[1] * s; m[6] = Y[2] * s;
+    m[8] = Z[0] * s; m[9] = Z[1] * s; m[10] = Z[2] * s; m[12] = pos[0]; m[13] = pos[1]; m[14] = pos[2];
+    return m;
+  }
+  // ---------- crowd mini person (5 draws; height ~1, faces +z; o.pitch looks up) ----------
+  function drawMini(E, base, o) {
+    const { M4 } = E; const m = E.meshes; o = o || {};
+    E.draw(m.sphere, M4.chain(base, M4.T(0, 0.33, 0), M4.S(0.42, 0.52, 0.36)), o.shirt || '#4f8cff', { spec: 0.4 });
+    const Hd = M4.chain(base, M4.T(0, 0.72, 0), M4.RY(o.yaw || 0), M4.RX(-(o.pitch || 0)), M4.T(0, 0.12, 0));
+    E.draw(m.sphere, M4.mul(Hd, M4.S(0.5)), o.skin || '#f3cdb8', { spec: 0.25 });
+    E.draw(m.hemi, M4.chain(Hd, M4.RX(-0.25), M4.S(0.53)), o.hair || '#1d1d22', { spec: 0.5 });
+    for (const s of [-1, 1]) E.draw(m.sphere, M4.chain(Hd, M4.T(0.09 * s, -0.03, 0.225), M4.S(0.075, 0.11, 0.05)), '#111116', { spec: 0.9 });
+  }
+  // ---------- HUD check (가운데 정렬 규칙) ----------
+  // 보이는(누적 opacity>0.05) 글자 요소(.t)마다 {text, cx, left, right, top, bottom, ok}.
+  // 기준: |cx-270| ≤ 4, left ≥ 100, right ≤ 440 (CSS 540x960)
+  function hudCheck() {
+    const st = document.getElementById('stage'), sr = st.getBoundingClientRect();
+    const out = [];
+    for (const el of st.querySelectorAll('.t')) {
+      const txt = (el.innerText || '').trim(); if (!txt) continue;
+      let op = 1, n = el;
+      while (n && n !== st) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') { op = 0; break; } op *= parseFloat(cs.opacity); n = n.parentElement; }
+      if (op <= 0.05) continue;
+      const r = el.getBoundingClientRect();
+      const left = r.left - sr.left, right = r.right - sr.left, cx = (left + right) / 2;
+      out.push({ text: txt.replace(/\s+/g, ' '), cx: +cx.toFixed(1), left: +left.toFixed(1), right: +right.toFixed(1), top: +(r.top - sr.top).toFixed(1), bottom: +(r.bottom - sr.top).toFixed(1), ok: Math.abs(cx - 270) <= 4 && left >= 100 && right <= 440 });
+    }
+    return out;
+  }
+  // 글자가 maxW(px)를 넘으면 글자 크기를 줄임 (base px에서 시작)
+  function fitText(el, base, maxW, minPx) {
+    let fs = base; el.style.fontSize = fs + 'px';
+    while (el.scrollWidth > maxW && fs > (minPx || 12)) { fs -= 1; el.style.fontSize = fs + 'px'; }
+    return fs;
+  }
+  global.hudCheck = hudCheck;
+  global.MiniEngine = MiniEngine;
+  global.ME = { M4, hex, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, drawMini, basis, hudCheck, fitText };
+})(window);
+
+</script>
+<script>
+'use strict';
+const { M4, rng, clamp, lerp, smooth, easeOutBack, springCamera, drawCharacter, basis, fitText } = ME;
+const E = MiniEngine(document.getElementById('c'));
+const gl = E.gl;
+const m = E.meshes, D = (...a) => E.draw(...a);
+const DURATION = 19.5;
+const FONT = "'Noto Sans CJK KR','Noto Sans KR',sans-serif";
+const $ = (id) => document.getElementById(id);
+const v3 = { add: (a, b) => a.map((x, k) => x + b[k]), sub: (a, b) => a.map((x, k) => x - b[k]), mul: (a, s) => a.map((x) => x * s), len: (a) => Math.hypot(a[0], a[1], a[2]), lerp: (a, b, u) => a.map((x, k) => x + (b[k] - x) * u), norm: (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return a.map(x => x / l); }, dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] };
+const easeOut = (u) => 1 - Math.pow(1 - clamp(u, 0, 1), 3);
+
+// ---------------- timeline ----------------
+// 결과(담장 2배) 시각: 힌트 1~20회. 눌림은 결과 0.12초 전.
+const RES = [2.08, 2.62, 3.07, 3.52, 4.07, 4.57, 5.07, 5.57, 6.2, 6.6, 8.0, 8.3, 8.6, 8.9, 9.2, 9.62, 9.92, 10.22, 10.52, 11.1];
+const T_REV = 13.4, T_MON = 15.2, ENDT = 18.0;
+function countAt(t) {
+  if (t < 0.8) return 10;
+  if (t < 1.1) return Math.max(0, Math.round(10 * (1 - (t - 0.8) / 0.27)));
+  let c = 0; for (const r of RES) if (t >= r) c++; return c;
+}
+function kfAt(t) { // 연속 담장 단계(반동 포함)
+  if (t < 0.8) return 10 + 0.15 * smooth(0, 0.8, t);
+  if (t < 1.1) return 10 * (1 - smooth(0.8, 1.08, t));
+  let k = 0; for (const r of RES) if (t >= r) k += easeOutBack(clamp((t - r) / 0.24, 0, 1)); return k;
+}
+const HV = (k) => k <= 4 ? Math.pow(2, k + 1) : 32 * Math.pow(2, 0.11 * (k - 4)); // 화면용 높이(512m≈구름층 40에 닿음)
+const CLOUD_Y = 42;
+function pressAmt(t) { // 손바닥 꾹 (0..1)
+  let p = 0;
+  for (let i = 0; i < RES.length; i++) { const s = RES[i] - 0.14; const d = t - s; const vis = (i < 8 || i >= 15) ? 1 : 0.45; if (d >= -0.12 && d < 0.2) p = Math.max(p, vis * (d < 0 ? 1 + d / 0.12 : 1 - d / 0.2)); }
+  if (t >= 1.9 && t < 2.06) p = Math.max(p, smooth(1.9, 1.96, t));
+  return clamp(p, 0, 1);
+}
+const meters = (c) => 2 * Math.pow(2, c);
+
+// ---------------- world layout ----------------
+const TH = -Math.PI / 4;
+const NW = [Math.sin(TH), 0, Math.cos(TH)];   // 담장 앞면 법선(카메라 쪽)
+const TW = [Math.cos(TH), 0, -Math.sin(TH)];  // 담장 가로 방향
+const F0 = [1.15, 0, -0.35];
+const wl = (x, y, z) => [F0[0] + TW[0] * x + NW[0] * z, y, F0[2] + TW[2] * x + NW[2] * z];
+const WALLM = basis(F0, [0, 1, 0], NW, 1); // 담장 로컬 행렬
+const HP = wl(-0.78, 0, 0.72);              // 주인공 발 위치
+const BTN = wl(-0.12, 1.22, 0);             // 버튼 받침 중심(벽면)
+const GUARD = [-1.55, 0, 1.0];
+const STAFF = wl(-2.05, 0, 1.35);
+const HERO_YAW = -0.3;
+const heroYaw = (t) => t < 1.1 ? -0.8 : (t >= 12.0 && t < T_REV ? -0.55 : HERO_YAW);
+
+// ---------------- textures ----------------
+function canvasTex(w, h, fn, rep) { return E.texture(fn, w, h, rep); }
+const TX = {
+  stone: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#8b8f99'; c.fillRect(0, 0, w, h); const R = rng(7); for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++) { const x = k * 64 + (r % 2) * 32, y = r * 32; c.fillStyle = `rgb(${120 + R() * 30 | 0},${124 + R() * 30 | 0},${134 + R() * 30 | 0})`; c.fillRect(x + 2, y + 2, 60, 28); } }, true),
+  ply: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#d9b27c'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(150,100,50,.35)'; c.lineWidth = 2; for (let i = 0; i < 26; i++) { c.beginPath(); c.moveTo(0, i * 10 + Math.sin(i) * 4); c.bezierCurveTo(80, i * 10 + 6, 170, i * 10 - 6, 256, i * 10 + 2); c.stroke(); } c.fillStyle = 'rgba(120,124,134,.55)'; for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) c.fillRect(k * 64 + (r % 2) * 32 + 3, r * 64 + 6, 56, 52); }, true),
+  ground: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#4a505c'; c.fillRect(0, 0, w, h); const R = rng(3); for (let i = 0; i < 400; i++) { c.fillStyle = R() < 0.5 ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.06)'; c.fillRect(R() * w, R() * h, 3, 3); } }, true),
+  floor: canvasTex(256, 256, (c, w, h) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { c.fillStyle = (x + y) % 2 ? '#2b2440' : '#463a66'; c.fillRect(x * 64, y * 64, 64, 64); } }, true),
+  cafe: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#5a3f7a'; c.fillRect(0, 0, w, h); c.fillStyle = '#4e356c'; for (let i = 0; i < 8; i++) c.fillRect(i * 32, 0, 14, h); }, true),
+  btn: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#e8283c'; c.fillRect(0, 0, w, h); const g = c.createRadialGradient(100, 90, 10, 128, 128, 128); g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = `900 92px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('힌트', 128, 134); }),
+  monOff: canvasTex(256, 128, (c, w, h) => { c.fillStyle = '#15171d'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(255,255,255,.07)'; c.beginPath(); c.moveTo(30, 0); c.lineTo(90, 0); c.lineTo(40, h); c.lineTo(-20, h); c.fill(); }),
+  monOn: canvasTex(256, 128, (c, w, h) => { c.fillStyle = '#120406'; c.fillRect(0, 0, w, h); c.strokeStyle = '#ff3346'; c.lineWidth = 5; c.strokeRect(10, 10, w - 20, h - 20); c.fillStyle = '#ff3346'; c.shadowColor = '#ff3346'; c.shadowBlur = 14; c.font = `900 56px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('탈출 실패', w / 2, h / 2 + 2); }),
+  neon: canvasTex(512, 128, (c, w, h) => { c.fillStyle = '#1a1024'; c.fillRect(0, 0, w, h); c.strokeStyle = '#ff5fa2'; c.lineWidth = 7; c.shadowColor = '#ff5fa2'; c.shadowBlur = 18; c.strokeRect(10, 10, w - 20, h - 20); c.fillStyle = '#ffe3f0'; c.font = `900 96px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('탈출카페', w / 2, h / 2 + 4); }),
+  backdrop: canvasTex(256, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0b1230'); g.addColorStop(1, '#27346a'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.fillStyle = '#fff6c8'; c.beginPath(); c.arc(180, 70, 30, 0, 7); c.fill(); const R = rng(9); c.fillStyle = '#fff'; for (let i = 0; i < 40; i++) c.fillRect(R() * w, R() * h * 0.7, 2, 2); }),
+  earth: canvasTex(256, 128, (c, w, h) => { c.fillStyle = '#2f7de0'; c.fillRect(0, 0, w, h); c.fillStyle = '#3fae4a'; const R = rng(21); for (let i = 0; i < 14; i++) { c.beginPath(); c.ellipse(R() * w, 20 + R() * 90, 14 + R() * 26, 8 + R() * 16, R() * 3, 0, 7); c.fill(); } c.fillStyle = 'rgba(255,255,255,.75)'; for (let i = 0; i < 10; i++) { c.beginPath(); c.ellipse(R() * w, R() * h, 20 + R() * 20, 4, 0, 0, 7); c.fill(); } }, true),
+};
+// 하늘(카메라에 붙은 먼 판): night / space
+function skyCanvas(kind) {
+  return canvasTex(256, 512, (c, w, h) => {
+    if (kind === 'night') {
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#060a22'); g.addColorStop(0.65, '#1a2456'); g.addColorStop(1, '#3a3f78'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      const R = rng(5); for (let i = 0; i < 90; i++) { c.fillStyle = `rgba(255,255,255,${0.3 + R() * 0.6})`; const s = R() < 0.1 ? 2.5 : 1.5; c.fillRect(R() * w, R() * h * 0.8, s, s); }
+      c.fillStyle = '#fff6c8'; c.shadowColor = '#fff6c8'; c.shadowBlur = 20; c.beginPath(); c.arc(60, 90, 20, 0, 7); c.fill();
+    } else {
+      c.fillStyle = '#02030a'; c.fillRect(0, 0, w, h);
+      const R = rng(11); for (let i = 0; i < 220; i++) { c.fillStyle = `rgba(255,255,255,${0.3 + R() * 0.7})`; const s = R() < 0.08 ? 2.6 : 1.3; c.fillRect(R() * w, R() * h, s, s); }
+      const g = c.createRadialGradient(190, 120, 5, 190, 120, 90); g.addColorStop(0, 'rgba(140,90,255,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    }
+  });
+}
+const SKY = { night: skyCanvas('night'), space: skyCanvas('space') };
+function skyQuad(cam, tex) {
+  const f = v3.norm(v3.sub(cam.look, cam.pos)); const Dd = 2000;
+  const h = 2 * Dd * Math.tan(cam.fov * Math.PI / 360) * 1.12, w = h * 540 / 960 * 1.12;
+  let up = [0, 1, 0]; up = v3.norm(v3.sub(up, v3.mul(f, v3.dot(up, f))));
+  const c = v3.add(cam.pos, v3.mul(f, Dd));
+  D(m.quad, M4.mul(basis(c, up, v3.mul(f, -1), 1), M4.S(w, h, 1)), [1, 1, 1], { tex, em: 1, spec: 0 });
+}
+
+// ---------------- helpers ----------------
+function limb(a, b, r, col) { const d = v3.sub(b, a), L = v3.len(d); if (L < 1e-4) return; D(m.cyl, M4.mul(basis(v3.lerp(a, b, 0.5), d, [0.3, 0.2, 1], 1), M4.S(r, L, r)), col, { spec: 0.4 }); }
+function sph(p, r, col, o) { D(m.sphere, M4.chain(M4.T(p[0], p[1], p[2]), M4.S(r)), col, o || { spec: 0.35 }); }
+function arm2(sh, hand, out, col) {
+  const mid = v3.lerp(sh, hand, 0.5), L = v3.len(v3.sub(hand, sh)), seg = 0.29;
+  const b = Math.sqrt(Math.max(0, seg * seg - (L / 2) * (L / 2)));
+  const el = v3.add(mid, v3.mul(v3.norm(out), b));
+  limb(sh, el, 0.14, col); limb(el, hand, 0.14, col); sph(el, 0.07, col);
+}
+function shadow(p, r, a) { D(m.disc, M4.chain(M4.T(p[0], 0.012, p[2]), M4.RX(-Math.PI / 2), M4.S(r)), [0, 0, 0], { alpha: a === undefined ? 0.3 : a, spec: 0, em: 1 }); }
+
+// ---------------- scene parts ----------------
+function inCafe(t) { return t >= T_REV; }
+function drawGround(t) {
+  if (inCafe(t)) {
+    D(m.box, M4.chain(M4.T(0, -0.05, 0), M4.S(40, 0.1, 40)), '#ffffff', { tex: TX.floor, tr: [14, 14], spec: 0.2 });
+    // 카페 벽(담장 자리 평면) + 옆벽
+    D(m.box, M4.chain(WALLM, M4.T(-1, 1.9, -0.06), M4.S(14, 3.8, 0.1)), '#ffffff', { tex: TX.cafe, tr: [6, 2], spec: 0.05 });
+    D(m.box, M4.chain(WALLM, M4.T(-4.6, 1.9, 4), M4.RY(Math.PI / 2), M4.S(9, 3.8, 0.1)), '#ffffff', { tex: TX.cafe, tr: [4, 2], spec: 0.05 });
+    // 옆벽에 '밤하늘' 배경 그림(세트 소품)
+    D(m.quad, M4.chain(WALLM, M4.T(-4.54, 1.9, 2.6), M4.RY(Math.PI / 2), M4.S(3.2, 2.2, 1)), [1, 1, 1], { tex: TX.backdrop, em: 0.6, spec: 0 });
+    // 합판 담장(어른 키 2.0) — 로컬 x 0.25~5
+    D(m.box, M4.chain(WALLM, M4.T(1.75, 1.0, 0.12), M4.S(3.0, 2.0, 0.24)), '#ffffff', { tex: TX.ply, tr: [2, 1.2], spec: 0.1 });
+    D(m.box, M4.chain(WALLM, M4.T(1.75, 2.02, 0.12), M4.S(3.02, 0.04, 0.26)), '#e8c58f', { spec: 0.1 });
+    D(m.box, M4.chain(WALLM, M4.T(0.24, 1.0, 0.12), M4.S(0.04, 2.0, 0.26)), '#e8c58f', { spec: 0.1 });
+    // 벽 모니터
+    const mon = M4.chain(WALLM, M4.T(-1.75, 2.0, 0.06));
+    D(m.box, M4.chain(mon, M4.S(1.32, 0.8, 0.08)), '#0d0e12', { spec: 0.6 });
+    D(m.quad, M4.chain(mon, M4.T(0, 0, 0.045), M4.S(1.22, 0.69, 1)), [1, 1, 1], { tex: t >= T_MON ? TX.monOn : TX.monOff, em: t >= T_MON ? 0.95 : 0.5, spec: 0.4 });
+    // 네온 간판
+    D(m.quad, M4.chain(WALLM, M4.T(-1.75, 3.05, 0.02), M4.S(1.5, 0.47, 1)), [1, 1, 1], { tex: TX.neon, em: 1, spec: 0 });
+    // 천장 조명 띠
+    for (let i = 0; i < 6; i++) sph(v3.add(wl(-3.5 + i * 1.4, 3.55, 0.2), [0, 0, 0]), 0.12, '#fff2b0', { em: 1, spec: 0 });
+    return;
+  }
+  D(m.box, M4.chain(M4.T(0, -0.05, 0), M4.S(400, 0.1, 400)), t >= 12.0 ? '#8a8aa0' : '#ffffff', { tex: TX.ground, tr: [80, 80], spec: 0.05 });
+  // 탐조등 탑(멀리) + 빛줄기
+  const tower = wl(-7, 0, 9);
+  D(m.cyl, M4.chain(M4.T(tower[0], 4, tower[2]), M4.S(0.5, 8, 0.5)), '#3d4150', { spec: 0.2 });
+  D(m.box, M4.chain(M4.T(tower[0], 8.3, tower[2]), M4.S(1.6, 0.8, 1.6)), '#2d303c', { spec: 0.2 });
+  const sw = Math.sin(t * 0.9) * 0.7;
+  const lamp = [tower[0], 8.3, tower[2]];
+  D(m.cone, M4.chain(M4.T(lamp[0], lamp[1], lamp[2]), M4.RY(0.6 + sw), M4.RX(-1.05), M4.T(0, -7, 0), M4.S(4, 14, 4)), [1, 0.97, 0.75], { alpha: 0.1, em: 1, spec: 0 });
+}
+function drawWall(t) {
+  if (inCafe(t)) return;
+  const H = HV(kfAt(t));
+  // 돌담: 로컬 x -5.5..5.5, 두께 0.8
+  D(m.box, M4.chain(WALLM, M4.T(5.45, H / 2, -0.4), M4.S(13.1, H, 0.8)), '#ffffff', { tex: TX.stone, tr: [6.5, H / 2], spec: 0.08 });
+  D(m.box, M4.chain(WALLM, M4.T(5.45, H + 0.06, -0.4), M4.S(13.3, 0.14, 0.95)), '#6e727c', { spec: 0.1 });
+  D(m.box, M4.chain(WALLM, M4.T(-1.2, H / 2, -0.4), M4.S(0.5, H, 1.05)), '#ffffff', { tex: TX.stone, tr: [0.25, H / 2], spec: 0.08 });
+  // 철조망
+  for (let k = 0; k < 2; k++) { const y = H + 0.28 + k * 0.18; D(m.cyl, M4.chain(WALLM, M4.T(5.45, y, -0.4), M4.RZ(Math.PI / 2), M4.S(0.04, 13.1, 0.04)), '#222', { spec: 0.6 }); }
+  for (let i = 0; i < 12; i++) D(m.cyl, M4.chain(WALLM, M4.T(-0.9 + i * 1.1, H + 0.22, -0.4), M4.S(0.05, 0.4, 0.05)), '#2a2a2a', { spec: 0.5 });
+  // 쿵: 벽 밑 먼지
+  for (const r of RES) { const d = t - r; if (d >= 0 && d < 0.5 && r < 6) { for (let i = 0; i < 5; i++) { const p = wl(-1.6 + i * 0.9, 0.1 + d * 0.4, 0.15 + d * 0.5); D(m.sphere, M4.chain(M4.T(p[0], p[1], p[2]), M4.S(0.25 + d * 0.8)), [0.85, 0.85, 0.9], { alpha: 0.5 * (1 - d / 0.5), em: 0.4 }); } } }
+}
+function drawButton(t, P) {
+  const press = pressAmt(t);
+  const B = M4.mul(basis(P, [0, 1, 0], NW, 1), M4.I());
+  D(m.box, M4.chain(B, M4.T(0, 0, 0.06), M4.S(0.68, 0.68, 0.12)), '#5a5e68', { spec: 0.6 });
+  D(m.box, M4.chain(B, M4.T(0, 0, 0.125), M4.S(0.6, 0.6, 0.012)), '#ffd23f', { spec: 0.3 });
+  const push = 0.07 * press;
+  D(m.cyl, M4.chain(B, M4.T(0, 0, 0.17 - push / 2), M4.RX(Math.PI / 2), M4.S(0.46, 0.09 - push, 0.46)), '#c81e30', { spec: 0.8 });
+  D(m.disc, M4.chain(B, M4.T(0, 0, 0.217 - push), M4.S(0.46)), [1, 1, 1], { tex: TX.btn, spec: 0.8, em: 0.25 });
+}
+function btnFace(P, t) { return v3.add(P, v3.mul(NW, 0.24 - 0.07 * pressAmt(t))); }
+function drawClouds(t) {
+  if (inCafe(t) || t < 5.5 || t >= 6.8) return;
+  const R = rng(17);
+  for (let i = 0; i < 70; i++) {
+    const a = R() * Math.PI * 2, d = 5 + R() * 50, y = CLOUD_Y + (R() - 0.5) * 4;
+    const c = wl(Math.cos(a) * d, y, Math.sin(a) * d - 0.4);
+    const s = 4 + R() * 6;
+    D(m.sphere, M4.chain(M4.T(c[0], c[1], c[2]), M4.S(s * 1.6, s * 0.6, s)), [0.92, 0.93, 1.0], { alpha: 0.88, em: 0.35, spec: 0 });
+  }
+}
+function drawLowClouds(t) { // 콜드 오픈: 담장이 구름을 뚫은 모습(화면용 낮은 구름 띠)
+  if (t >= 1.1) return; const a = t < 0.8 ? 1 : 1 - smooth(0.8, 1.05, t); if (a < 0.02) return;
+  const R = rng(29);
+  for (let i = 0; i < 26; i++) { const c = wl(-4.5 + R() * 7, 3.6 + R() * 1.0, -0.3 + R() * 2.2); const s = 0.9 + R() * 1.3;
+    D(m.sphere, M4.chain(M4.T(c[0], c[1], c[2]), M4.S(s * 1.7, s * 0.7, s)), [0.93, 0.94, 1.0], { alpha: 0.92 * a, em: 0.4, spec: 0 }); }
+}
+function drawPlane(t) {
+  if (t < 7.8 || t >= 9.4) return;
+  const u = (t - 7.8) / 1.6;
+  const pp = (u) => { if (u < 0.5) return wl(-22 + 19 * u / 0.5, 5.0, 0.6); const e = (u - 0.5) / 0.5; return wl(-3 + 1.5 * Math.sin(e * Math.PI / 2), 5.0 + 0.4 * e, 0.6 + 7 * e * e); };
+  const c = pp(u), d = v3.sub(pp(u + 0.01), c);
+  const yaw = Math.atan2(-d[2], d[0]);
+  const roll = -0.55 * Math.sin(clamp((u - 0.4) / 0.6, 0, 1) * Math.PI);
+  const P = M4.chain(M4.T(c[0], c[1], c[2]), M4.RY(yaw), M4.RX(roll), M4.S(0.75));
+  D(m.cyl, M4.chain(P, M4.RZ(Math.PI / 2), M4.S(0.9, 5, 0.9)), '#f4f6fb', { spec: 0.6 });
+  D(m.sphere, M4.chain(P, M4.T(2.5, 0, 0), M4.S(1.2, 0.9, 0.9)), '#f4f6fb', { spec: 0.6 });
+  D(m.sphere, M4.chain(P, M4.T(2.85, 0.12, 0), M4.S(0.5, 0.35, 0.75)), '#24314f', { spec: 0.8 });
+  D(m.box, M4.chain(P, M4.T(0.2, -0.1, 0), M4.S(1.3, 0.12, 7)), '#dfe4ee', { spec: 0.5 });
+  D(m.box, M4.chain(P, M4.T(-2.2, 0.8, 0), M4.S(0.9, 1.4, 0.12)), '#ff6b81', { spec: 0.5 });
+  D(m.box, M4.chain(P, M4.T(-2.2, 0.1, 0), M4.S(0.7, 0.1, 2.4)), '#dfe4ee', { spec: 0.5 });
+  for (const s of [-1, 1]) sph(M4.apply(P, [0.4, -0.1, 3.4 * s]), 0.14, s > 0 ? '#2fbf71' : '#ff3346', { em: 1, spec: 0 });
+}
+function drawEarth(t) {
+  if (t < 12.0 || t >= T_REV) return;
+  const C = CUR_CAM, f = v3.norm(v3.sub(C.look, C.pos)), rt = v3.norm([f[2], 0, -f[0]]);
+  const c = v3.add(C.pos, v3.add(v3.mul(f, 600), v3.add(v3.mul(rt, 150), [0, 40, 0])));
+  D(m.sphere, M4.chain(M4.T(c[0], c[1], c[2]), M4.RY(t * 0.3), M4.S(46)), [1, 1, 1], { tex: TX.earth, em: 0.55, spec: 0.3 });
+  D(m.sphere, M4.chain(M4.T(c[0], c[1], c[2]), M4.S(49)), [0.5, 0.75, 1], { alpha: 0.25, em: 1, spec: 0 });
+}
+
+// ---------------- hero ----------------
+function heroPose(t) {
+  const o = { shirt: '#ff8a3d', hair: 'bob', noArms: true, mouth: 0.15, surprise: 0, headPitch: 0, headYaw: 0, headRoll: 0, browTilt: 0, blink: 0, eyeDots: 0, gazeX: 0, gazeY: 0 };
+  let mode = 'press', sit = 0;
+  const c = countAt(t);
+  if (t < 0.8) { mode = 'down'; o.headPitch = -0.62; o.surprise = 1.2; o.mouth = 1.1 + 0.08 * Math.sin(t * 30); o.headYaw = 0.1; o.gazeY = 1; }
+  else if (t < 1.1) { mode = 'down'; o.headPitch = lerp(-0.62, -0.1, smooth(0.8, 1.1, t)); o.surprise = 0.5; o.mouth = 0.5; }
+  else if (t < 1.9) { mode = 'hips'; o.headPitch = -0.12; o.headRoll = 0.22 * smooth(1.2, 1.5, t); o.mouth = 0.18; o.browTilt = 0.15; o.gazeX = 0.6; }
+  else if (t < 5.8) {
+    const u = smooth(2.0, 5.6, t);
+    o.headPitch = lerp(-0.15, -0.55, u); o.headRoll = lerp(0.12, 0, u); o.surprise = lerp(0.3, 1.0, u); o.mouth = lerp(0.25, 0.75, u) + 0.05 * Math.sin(t * 20); o.browTilt = lerp(0.15, 0.4, u);
+  } else if (t < 7.8) { o.headPitch = -0.65; o.surprise = 1.2; o.mouth = 1.05; o.browTilt = 0.3; }
+  else if (t < 10.8) { o.headPitch = -0.5; o.surprise = 0.8; o.mouth = 0.6; o.browTilt = 0.45; }
+  else if (t < 12.0) { o.headPitch = t < 11.2 ? 0.05 : -0.3; o.headYaw = 0.25; o.surprise = t < 11.2 ? 0.2 : 0.9; o.mouth = t < 11.2 ? 0.12 : 0.8; o.browTilt = 0.55; o.gazeX = t < 11.2 ? 0.8 : 0; }
+  else if (t < T_REV) { mode = 'release'; o.headPitch = -0.68; o.surprise = 1.3; o.mouth = 1.15 + 0.06 * Math.sin(t * 24); o.gazeY = 1; }
+  else {
+    mode = 'sit'; sit = smooth(13.55, 13.85, t);
+    o.headPitch = lerp(-0.4, 0.08, smooth(13.5, 13.9, t)); o.surprise = t < 15.2 ? 0.6 : 0.25; o.mouth = t < 15.2 ? 0.55 : 0.12; o.browTilt = 0.45;
+    if (t >= 15.6 && t < 16.9) { o.gazeX = 1.0 * smooth(15.6, 15.95, t); o.gazeY = -0.3 * smooth(15.6, 15.95, t); }
+    else if (t >= 16.9) { o.gazeX = lerp(1.0, -1.0, smooth(16.9, 17.25, t)); o.gazeY = 0; o.surprise = t >= 17.25 ? 0.9 : 0.25; o.mouth = t >= 17.25 ? 0.3 : 0.12; }
+  }
+  // 어깨 처짐(7.8~10.8)
+  const slump = t >= 7.8 && t < 10.8 ? smooth(7.8, 10.6, t) : 0;
+  return { o, mode, sit, slump };
+}
+function drawHero(t) {
+  const { o, mode, sit, slump } = heroPose(t);
+  const hip = sit > 0 ? lerp(0, -0.3, sit) : 0;
+  const base = M4.chain(M4.T(HP[0], hip, HP[2]), M4.RY(heroYaw(t)));
+  o.sit = sit; o.pants = '#26262e';
+  const Hd = drawCharacter(E, base, o); window.__head = M4.apply(Hd, [0, 0, 0]);
+  // 죄수복 줄무늬
+  for (const y of [0.56, 0.78, 1.0]) D(m.sphere, M4.chain(base, M4.T(0, y, 0), M4.S(y === 0.78 ? 0.648 : (y === 1.0 ? 0.55 : 0.59), 0.055, y === 0.78 ? 0.548 : (y === 1.0 ? 0.46 : 0.49))), '#c4521a', { spec: 0.3 });
+  // 땀방울(3.6~5.8)
+  if (t >= 3.6 && t < 5.8) { const d = ((t - 3.6) % 1.1) / 1.1; D(m.sphere, M4.chain(Hd, M4.T(-0.4, 0.15 - d * 0.25, 0.2), M4.S(0.07, 0.11, 0.07)), [0.6, 0.85, 1], { em: 0.5, spec: 0.9 }); }
+  // 팔: 어깨에서 직접 그림 (손 = 뭉툭한 둥근 손, 손가락 없음)
+  const SH = (s) => M4.apply(base, [0.3 * s, 1.02 - slump * 0.06, 0]);
+  const BW = (x, y, z) => M4.apply(base, [x, y, z]);
+  const shirt = '#ff8a3d', skin = '#f3cdb8';
+  const out = (s) => v3.sub(BW(0.7 * s, 0.9, -0.1), BW(0, 0.9, 0));
+  // 왼팔(-x, 벽 반대쪽)
+  let L;
+  if (mode === 'hips') L = BW(-0.36, 0.7, 0.06);
+  else if (mode === 'sit') L = BW(-0.16, 0.62 + hip * 0 - 0.02, 0.42);
+  else L = BW(-0.44, 0.56 - slump * 0.05, 0.05);
+  arm2(SH(-1), L, out(-1), shirt); sph(L, 0.09, skin);
+  // 오른팔(+x, 버튼 쪽)
+  if (mode === 'press' || mode === 'release') {
+    const P = btnFace(BTN, t);
+    let hand = v3.add(P, v3.mul(NW, 0.05));
+    if (t >= 10.8 && t < 11.0) hand = v3.add(hand, v3.mul(NW, 0.3 * (1 - smooth(10.8, 10.98, t)) + 0.04 * Math.sin(t * 50))); // 쭈뼛쭈뼛
+    if (mode === 'release') hand = v3.add(hand, v3.add(v3.mul(NW, 0.2), [0, -0.12, 0]));
+    if (t >= 1.9 && t < 1.96) hand = v3.lerp(BW(0.44, 0.56, 0.05), hand, smooth(1.9, 1.96, t));
+    const sh = SH(1);
+    arm2(sh, v3.add(hand, v3.mul(NW, 0.08)), [0, -1, 0.3], shirt);
+    // 손바닥: 버튼 면에 납작하게
+    D(m.sphere, M4.mul(basis(hand, [0, 1, 0], NW, 1), M4.S(0.2, 0.23, 0.09)), skin, { spec: 0.3 });
+  } else {
+    let R2;
+    if (mode === 'hips') R2 = BW(0.36, 0.7, 0.06);
+    else if (mode === 'sit') R2 = BW(0.16, 0.6, 0.42);
+    else R2 = BW(0.44, 0.56, 0.05);
+    arm2(SH(1), R2, out(1), shirt); sph(R2, 0.09, skin);
+  }
+  if (!inCafe(t)) shadow(HP, 0.55, 0.35);
+  return Hd;
+}
+function drawGuard(t) {
+  if (t < 6.8 || t >= 7.8) return;
+  const base = M4.chain(M4.T(GUARD[0], 0, GUARD[2]), M4.RY(0.55));
+  const up = smooth(6.9, 7.15, t);
+  const pitch = lerp(-0.55, -0.95, up);
+  const Hd = drawCharacter(E, base, { shirt: '#3550a0', hair: 'short', pants: '#1f2a44', noArms: true, headPitch: pitch, surprise: lerp(0.2, 1.3, up), mouth: lerp(0.2, 1.1, up), blink: 0 });
+  D(m.box, M4.chain(base, M4.T(0.18, 1.1, 0.27), M4.S(0.12, 0.12, 0.02)), '#ffd23f', { spec: 0.8 }); // 배지
+  // 쌍안경(눈앞)
+  const bin = (s) => M4.apply(Hd, [0.15 * s, -0.08, 0.55]);
+  for (const s of [-1, 1]) { const b = bin(s); D(m.cyl, M4.chain(Hd, M4.T(0.15 * s, -0.08, 0.6), M4.RX(Math.PI / 2), M4.S(0.17, 0.3, 0.17)), '#1c1c22', { spec: 0.7 }); }
+  // 팔: 양손으로 쌍안경만 잡음
+  for (const s of [-1, 1]) { const sh = M4.apply(base, [0.3 * s, 1.02, 0]); const h = M4.apply(Hd, [0.27 * s, -0.16, 0.6]); arm2(sh, h, M4.apply(M4.mul(base, M4.I()), [0.6 * s, -0.2, 0]).map((x, k) => x - M4.apply(base, [0, 0, 0])[k]), '#3550a0'); sph(h, 0.09, '#f3cdb8'); }
+  // 모자: 7.2초에 뒤로 벗겨짐
+  const fly = smooth(7.2, 7.75, t);
+  const capL = M4.chain(Hd, M4.T(0, 0.36 + fly * 0.5, -0.05 - fly * 1.3), M4.RX(-fly * 2.4));
+  const capW = fly > 0 ? M4.mul(M4.T(0, -fly * fly * 0.9, 0), capL) : capL;
+  D(m.cyl, M4.chain(capW, M4.S(0.86, 0.22, 0.86)), '#25335f', { spec: 0.4 });
+  D(m.cyl, M4.chain(capW, M4.T(0, -0.08, 0.3), M4.S(0.7, 0.04, 0.5)), '#111', { spec: 0.4 });
+  D(m.sphere, M4.chain(capW, M4.T(0, 0.02, 0.43), M4.S(0.14, 0.12, 0.04)), '#ffd23f', { spec: 0.8 });
+  shadow(GUARD, 0.55, 0.35);
+}
+function drawStaff(t) {
+  if (!inCafe(t)) return;
+  const base = M4.chain(M4.T(STAFF[0], 0, STAFF[2]), M4.RY(0.25));
+  // 고개: 13.6초부터 모니터 쪽(왼쪽 위)으로, 15.3~15.6 까딱(모니터 시선 가리킴), 16.9초 주인공과 눈 마주침
+  let yaw = 0, pitch = 0, gx = 0;
+  if (t >= 13.6 && t < 16.9) { yaw = 0.75 * smooth(13.6, 13.9, t); pitch = -0.28 * smooth(13.6, 13.9, t) + (t >= 15.3 && t < 15.75 ? 0.22 * Math.sin((t - 15.3) / 0.45 * Math.PI) : 0); gx = 0.6; }
+  if (t >= 16.9) { yaw = lerp(0.75, -0.55, smooth(16.9, 17.2, t)); pitch = lerp(-0.28, 0.05, smooth(16.9, 17.2, t)); gx = -0.6; }
+  const Hd = drawCharacter(E, base, { shirt: '#2fbf71', hair: 'short', pants: '#26262e', noArms: true, headYaw: yaw, headPitch: pitch, gazeX: gx, mouth: 0.15, blink: 0 });
+  // 앞치마
+  D(m.sphere, M4.chain(base, M4.T(0, 0.72, 0.03), M4.S(0.6, 0.56, 0.53)), '#263044', { spec: 0.2 });
+  // 헤드셋
+  for (let i = 0; i <= 8; i++) { const a = Math.PI * i / 8; D(m.sphere, M4.chain(Hd, M4.T(Math.cos(a) * 0.47, Math.sin(a) * 0.47 - 0.02, -0.02), M4.S(0.07)), '#1c1c22', { spec: 0.6 }); }
+  for (const s of [-1, 1]) D(m.sphere, M4.chain(Hd, M4.T(0.46 * s, -0.06, 0), M4.S(0.1, 0.18, 0.16)), '#1c1c22', { spec: 0.6 });
+  sph(M4.apply(Hd, [-0.44, -0.24, 0.12]), 0.05, '#1c1c22');
+  // 팔: 내린 채
+  for (const s of [-1, 1]) { const sh = M4.apply(base, [0.3 * s, 1.02, 0]); const h = M4.apply(base, [0.42 * s, 0.55, 0.04]); arm2(sh, h, v3.sub(M4.apply(base, [0.7 * s, 0.8, -0.1]), M4.apply(base, [0, 0.8, 0])), '#2fbf71'); sph(h, 0.09, '#f3cdb8'); }
+}
+
+// ---------------- camera ----------------
+const HEAD = [HP[0], 1.55, HP[2]];
+const COLD = { pos: wl(-1.3, 0.85, 2.75), look: wl(-0.5, 2.3, 0.0), fov: 66 };
+const MED = { pos: [-1.05, 1.75, 3.75], look: [0.42, 1.35, -0.45], fov: 38 };
+const GROW = { pos: wl(-2.6, 1.3, 6.5), look: wl(-0.3, 3.2, 0.3), fov: 54 };
+const LOWUP = { pos: wl(-1.45, 1.0, 2.95), look: wl(-0.4, 2.05, 0.0), fov: 60 };
+const WORM = { pos: wl(-4.5, 0.8, 10), look: wl(0, 13, 0), fov: 66 };
+const GUARDC = { pos: [-1.2, 1.3, 4.4], look: [-0.9, 2.0, 0.5], fov: 46 };
+const PLANEC = { pos: wl(-3.4, 1.2, 7.5), look: wl(-0.8, 4.6, 0.5), fov: 58 };
+const BC = v3.add(BTN, v3.add(v3.mul(NW, 1.3), v3.add(v3.mul(TW, 0.55), [0, 0.18, 0])));
+const BTNC = { pos: BC, look: v3.add(BTN, v3.add(v3.mul(TW, -0.1), [0, -0.04, 0])), fov: 42 };
+const MED2 = { pos: [-0.95, 1.75, 3.3], look: [0.38, 1.12, -0.5], fov: 38 };
+const SPACEC = { pos: wl(-0.5, 1.6, 3.4), look: wl(-1.3, 1.25, 0.3), fov: 58 };
+const WIDE = { pos: wl(-0.6, 2.5, 7.2), look: wl(-0.9, 1.4, 0.3), fov: 52 };
+const CAFEM = { pos: wl(-1.1, 1.75, 5.6), look: wl(-1.15, 1.1, 0.6), fov: 56 };
+const ENDC = { pos: wl(-0.6, 2.6, 7.8), look: wl(-0.9, 1.4, 0.3), fov: 52 };
+const mixCam = (A, B, u) => ({ pos: v3.lerp(A.pos, B.pos, u), look: v3.lerp(A.look, B.look, u), fov: lerp(A.fov, B.fov, u) });
+const zoomed = (B, f) => ({ pos: B.pos, look: B.look, fov: f });
+const SHOTS = [
+  { t0: 0, snap: true, target: (t) => zoomed(COLD, 64 - 2.5 * t) },
+  { t0: 0.8, snap: true, target: (t) => mixCam(zoomed(COLD, 62), MED, smooth(0.8, 1.08, t)) },
+  { t0: 1.1, snap: true, target: (t) => zoomed(MED, 38 - 1.5 * (t - 1.1)) },
+  { t0: 2.1, w: 4.5, target: (t) => GROW },
+  { t0: 3.6, snap: true, target: (t) => ({ pos: LOWUP.pos, look: v3.add(LOWUP.look, [0, 0.8 * (t - 3.6), 0]), fov: LOWUP.fov }) },
+  { t0: 5.8, snap: true, target: (t) => ({ pos: WORM.pos, look: v3.add(WORM.look, [0, 4 * smooth(5.9, 6.8, t), 0]), fov: WORM.fov }) },
+  { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 50 - 1.2 * (t - 6.8)) },
+  { t0: 7.8, snap: true, target: (t) => zoomed(PLANEC, 64 - 1.5 * (t - 7.8)) },
+  { t0: 9.4, snap: true, target: (t) => zoomed(BTNC, 40 - 2 * (t - 9.4)) },
+  { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 36 - 1 * (t - 10.8)) },
+  { t0: 12.0, snap: true, target: (t) => zoomed(SPACEC, 60 - 1.5 * (t - 12)) },
+  { t0: T_REV, snap: true, target: (t) => mixCam(MED2, WIDE, easeOut((t - T_REV) / 0.45)) },
+  { t0: 15.2, w: 3, target: (t) => CAFEM },
+  { t0: ENDT, w: 3, target: (t) => ENDC },
+];
+function shakeAt(t) {
+  let s = 0;
+  for (const r of RES) { const d = t - r; const amp = r === 6.2 || r === 6.6 ? 0.06 : (r === 11.1 ? 0.08 : (r > 7.7 && r < 9.4 ? 0.015 : 0.035)); if (d >= 0 && d < 0.35) s = Math.max(s, amp * (1 - d / 0.35)); }
+  for (const [a, amp] of [[0.0, 0.03], [T_REV, 0.04], [13.75, 0.05]]) { const d = t - a; if (d >= 0 && d < 0.35) s = Math.max(s, amp * (1 - d / 0.35)); }
+  if (t < 0.8) s = Math.max(s, 0.012);
+  return s ? [Math.sin(t * 71) * s, Math.cos(t * 53) * s, 0] : null;
+}
+function envAt(t) {
+  if (inCafe(t)) return { skyTop: [0.15, 0.1, 0.22], skyBot: [0.1, 0.07, 0.15], light: [-0.3, 1.0, 0.8], fog: [0.2, 0.15, 0.3], amb: [0.95, 0.85, 1.0], gnd: [0.45, 0.35, 0.5], fogNear: 2500, fogFar: 4000 };
+  const sp = t >= 12.0;
+  return { skyTop: [0.03, 0.05, 0.15], skyBot: [0.1, 0.12, 0.3], light: [-0.45, 1.0, 0.7], fog: [0.1, 0.12, 0.25], amb: sp ? [0.75, 0.78, 0.95] : [0.72, 0.78, 1.0], gnd: [0.35, 0.36, 0.48], fogNear: 2500, fogFar: 4000 };
+}
+
+// ---------------- scene ----------------
+let CUR_CAM = null;
+function scene(t) {
+  if (!inCafe(t)) skyQuad(CUR_CAM, t >= 12.0 ? SKY.space : SKY.night);
+  drawGround(t);
+  drawWall(t);
+  drawButton(t, BTN);
+  drawClouds(t);
+  drawLowClouds(t);
+  drawPlane(t);
+  drawEarth(t);
+  drawHero(t);
+  drawGuard(t);
+  drawStaff(t);
+}
+
+// ---------------- HUD ----------------
+const SUBS = [
+  [1.1, 1.9, '열 번에 구름 뚫었어.'], // 0~1.1초는 얼굴과 겹쳐 생략(0초 글자 3개 유지)
+  // 2.4~4.82 '한 번 누르니 담장이 두 배!'는 팝1(2.2~3.4)과 같은 말이라 자막 생략
+  [11.1, 12.96, '스무 번 누르니 우주야.'],
+  // 13.6~16.19 '알고 보니 방탈출 카페였어.'는 팝2(13.5~15.1)와 같은 말이라 자막 생략
+  [16.8, 18.0, '힌트 먼저 찾는 친구 알지?'],
+];
+const POPS = [
+  [2.2, 3.4, '힌트 1번 = 담장 2배!', 30, '#ffe14d'],
+  [13.5, 15.1, '알고 보니 방탈출 카페!', 30, '#ffe14d'],
+];
+let popKey = '';
+function hud(t) {
+  const s = SUBS.find(([a, b]) => t >= a && t < b);
+  $('sub').innerHTML = s ? s[2] : '';
+  $('subRow').style.opacity = s && t < ENDT ? 1 : 0;
+  const C = $('counter'), c = countAt(t);
+  const showC = t < T_REV;
+  $('counterRow').style.opacity = showC ? 1 : 0;
+  if (showC) {
+    C.querySelector('.num').innerHTML = meters(c).toLocaleString('en-US') + '<small>m</small>';
+    fitText(C.querySelector('.num'), 48, 300, 30);
+    C.querySelector('.sub').textContent = `힌트 ${c}회`;
+    let lc = -9; for (let tt = t; tt > t - 0.3; tt -= 1 / 60) { if (countAt(tt) !== c) { lc = tt; break; } }
+    let sc = 1 + 0.16 * Math.exp(-(t - lc) * 12);
+    if (t >= 11.1 && t < 11.7) sc = 1 + 0.25 * Math.exp(-(t - 11.1) * 7);
+    C.style.transform = `scale(${sc.toFixed(3)})`;
+  }
+  const P = $('pop'), p = POPS.find(([a, b]) => t >= a && t < b);
+  if (p && t < ENDT) {
+    const u = (t - p[0]) / (p[1] - p[0]); const sc = easeOutBack(Math.min(1, u * 5));
+    const key = p[2] + p[3];
+    if (key !== popKey) { P.textContent = p[2]; fitText(P, p[3], 330, 22); popKey = key; }
+    P.style.color = p[4] || '#fff';
+    P.style.transform = `scale(${Math.max(0.01, sc).toFixed(3)})`;
+    $('popRow').style.opacity = u > 0.88 ? (1 - (u - 0.88) / 0.12).toFixed(3) : 1;
+  } else $('popRow').style.opacity = 0;
+  const rw = t >= 0.8 && t < 1.1;
+  $('rew').style.opacity = rw ? 0.9 : 0;
+  $('c').style.filter = rw ? 'saturate(0.45) contrast(1.15) blur(1px)' : (t >= ENDT ? 'brightness(0.6) blur(2.5px)' : 'none');
+  let fl = 0; for (const [ft, a] of [[0.8, 0.45], [1.1, 0.3], [6.2, 0.25], [11.1, 0.35], [12.0, 0.3], [T_REV, 0.45]]) { const d = t - ft; if (d >= 0 && d < 0.3) fl = Math.max(fl, a * (1 - d / 0.3)); }
+  $('flash').style.opacity = fl.toFixed(3);
+  const ec = smooth(ENDT, ENDT + 0.25, t);
+  $('endRow').style.opacity = ec.toFixed(3);
+  $('end').style.transform = `scale(${(0.85 + 0.15 * easeOutBack((t - ENDT) / 0.35)).toFixed(3)})`;
+  const cf = smooth(T_REV, T_REV + 0.25, t); // 반전(카페) 컷부터 제목·배지 숨김(네온 간판과 겹침 방지)
+  $('titleRow').style.opacity = (1 - cf).toFixed(3);
+  $('badgeRow').style.opacity = (smooth(1.2, 1.5, t) * (1 - cf)).toFixed(3);
+}
+
+window.DURATION = DURATION;
+window.proj = (p) => { const v = window.__vp; const x = v[0] * p[0] + v[4] * p[1] + v[8] * p[2] + v[12], y = v[1] * p[0] + v[5] * p[1] + v[9] * p[2] + v[13], w = v[3] * p[0] + v[7] * p[1] + v[11] * p[2] + v[15]; return [+((x / w * 0.5 + 0.5) * 540).toFixed(0), +((0.5 - y / w * 0.5) * 960).toFixed(0)]; };
+window.renderAt = function (t) {
+  const cam = window.CAM_OVERRIDE || springCamera(SHOTS, t, shakeAt(t));
+  CUR_CAM = cam;
+  E.begin(cam, envAt(t));
+  scene(t);
+  window.__vp = E.end();
+  hud(t);
+  return true;
+};
+window.renderAt(0);
+</script>
+</body></html>

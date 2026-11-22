@@ -314,8 +314,8 @@
       // pocket
       D(m.sphere, M4.chain(B, M4.T(0, 0.66, 0.235), M4.S(0.34, 0.16, 0.08)), '#ef5a72', sp);
     }
-    // arms
-    for (const s of [-1, 1]) {
+    // arms (o.noArms: 장면에서 limb로 직접 그림 — 손바닥 누르기·무릎 위 손 등)
+    if (!o.noArms) for (const s of [-1, 1]) {
       const ang = s < 0 ? (o.armL || [0.25, 0]) : (o.armR || [0.25, 0]);
       const A = M4.chain(B, M4.T(0.3 * s, 1.0, 0), M4.RZ(ang[0] * s), M4.RX(-ang[1]));
       D(m.cyl, M4.chain(A, M4.T(0, -0.2, 0), M4.S(0.14, 0.42, 0.14)), shirt, sp);
@@ -335,7 +335,7 @@
     const sur = o.surprise || 0, dots = o.eyeDots || 0, blink = o.blink || 0;
     const eyeS = (1 + sur * 0.3) * (1 - dots * 0.62);
     for (const s of [-1, 1]) {
-      const ey = M4.chain(Hd, M4.T(0.15 * s, -0.09, 0.392));
+      const ey = M4.chain(Hd, M4.T(0.15 * s + (o.gazeX || 0) * 0.045, -0.09 + (o.gazeY || 0) * 0.03, 0.392));
       D(m.sphere, M4.mul(ey, M4.S(0.12 * eyeS, 0.17 * eyeS * (1 - blink * 0.9), 0.07)), '#16161b', { spec: 0.9 });
       if (dots < 0.5 && blink < 0.5) D(m.sphere, M4.chain(ey, M4.T(0.025 * eyeS, 0.04 * eyeS, 0.03), M4.S(0.045 * eyeS)), '#ffffff', { em: 0.8 });
       D(m.sphere, M4.chain(Hd, M4.T(0.25 * s, -0.2, 0.3), M4.S(0.13, 0.07, 0.04)), '#ff98a8', { em: 0.3, spec: 0.1 });

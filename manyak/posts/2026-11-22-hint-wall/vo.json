@@ -1,0 +1,41 @@
+{
+ "voice": "Minho 537a82ae (cartesia sonic-3.5)",
+ "speed": "1.18, s3 atempo 1.1",
+ "segments": [
+  {
+   "file": "vo/s1.wav",
+   "text": "열 번에 구름 뚫었어.",
+   "start": 0.0,
+   "end": 1.76,
+   "dur": 1.76
+  },
+  {
+   "file": "vo/s2.wav",
+   "text": "한 번 누르니 담장이 두 배!",
+   "start": 2.4,
+   "end": 4.82,
+   "dur": 2.42
+  },
+  {
+   "file": "vo/s3.wav",
+   "text": "스무 번 누르니 우주야.",
+   "start": 11.1,
+   "end": 12.957,
+   "dur": 1.857
+  },
+  {
+   "file": "vo/s4.wav",
+   "text": "알고 보니 방탈출 카페였어.",
+   "start": 13.6,
+   "end": 16.192,
+   "dur": 2.592
+  },
+  {
+   "file": "vo/s5.wav",
+   "text": "힌트 먼저 찾는 친구 알지?",
+   "start": 16.8,
+   "end": 18.373,
+   "dur": 1.573
+  }
+ ]
+}
