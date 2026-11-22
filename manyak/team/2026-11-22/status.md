@@ -9,3 +9,5 @@ REJECTED concept #2: [캡션] 공유 요청 줄 '방탈출' 스포일·[타이�
 SUBMIT concept #3 manyak/team/2026-11-22/concept.md
 REJECTED concept #3: [타이밍] 5.8~6.1초 사건 과밀·6.1~12초 몽타주 빽빽·카페 장면에 없는 힌트 버튼
 SUBMIT concept #4 manyak/team/2026-11-22/concept.md
+REJECTED concept #4: [타이밍] 6.8~7.4초 과밀·카운터 점프 모순·[AI티] 대본3 시각·[겹침] 모니터/팝2
+SUBMIT concept #5 manyak/team/2026-11-22/concept.md
