@@ -302,8 +302,10 @@ function drawGuard(t) {
   for (const s of [-1, 1]) { const sh = M4.apply(base, [0.3 * s, 1.02, 0]); const h = M4.apply(Hd, [0.27 * s, -0.16, 0.6]); arm2(sh, h, M4.apply(M4.mul(base, M4.I()), [0.6 * s, -0.2, 0]).map((x, k) => x - M4.apply(base, [0, 0, 0])[k]), '#3550a0'); sph(h, 0.09, '#f3cdb8'); }
   // 모자: 7.2초에 뒤로 벗겨짐
   const fly = smooth(7.2, 7.75, t);
-  const capL = M4.chain(Hd, M4.T(0, 0.36 + fly * 1.1, -0.05 - fly * 0.55), M4.RX(-fly * 2.4));
-  const capW = fly > 0 ? M4.mul(M4.T(0, -fly * fly * 0.9, 0), capL) : capL;
+  const capL = M4.chain(Hd, M4.T(0, 0.36 + fly * 0.35, -0.05), M4.RX(-fly * 1.6));
+  // 위로 튀었다가 오른쪽(화면 안쪽)으로 떨어짐 — 크롭 안 유지
+  const capW = fly > 0 ? M4.mul(M4.T(0.45 * fly, 0.55 * fly - 0.75 * fly * fly, 0.25 * fly), capL) : capL;
+  window.__gcap = M4.apply(capW, [0, 0, 0]);
   D(m.cyl, M4.chain(capW, M4.S(0.86, 0.22, 0.86)), '#25335f', { spec: 0.4 });
   D(m.cyl, M4.chain(capW, M4.T(0, -0.08, 0.3), M4.S(0.7, 0.04, 0.5)), '#111', { spec: 0.4 });
   D(m.sphere, M4.chain(capW, M4.T(0, 0.02, 0.43), M4.S(0.14, 0.12, 0.04)), '#ffd23f', { spec: 0.8 });
@@ -331,15 +333,15 @@ function drawStaff(t) {
 // ---------------- camera ----------------
 const HEAD = [HP[0], 1.55, HP[2]];
 const COLD = { pos: wl(-1.3, 0.85, 2.75), look: wl(-0.5, 2.3, 0.0), fov: 66 };
-const MED = { pos: [-1.05, 1.75, 3.75], look: [0.42, 1.35, -0.45], fov: 38 };
+const MED = { pos: [-1.05, 1.75, 3.75], look: [0.18, 1.55, -0.45], fov: 40 };
 const GROW = { pos: wl(-2.6, 1.3, 6.5), look: wl(-0.3, 3.2, 0.3), fov: 54 };
-const LOWUP = { pos: wl(-1.45, 1.0, 2.95), look: wl(-0.4, 2.05, 0.0), fov: 60 };
+const LOWUP = { pos: wl(-1.45, 1.0, 2.95), look: wl(-0.72, 2.05, 0.0), fov: 60 };
 const WORM = { pos: wl(-4.5, 0.8, 10), look: wl(0, 13, 0), fov: 66 };
-const GUARDC = { pos: [-0.85, 1.3, 5.3], look: [-0.5, 2.0, 0.3], fov: 56 };
+const GUARDC = { pos: [-0.97, 1.3, 5.3], look: [-0.64, 2.0, 0.3], fov: 56 };
 const PLANEC = { pos: wl(-3.4, 1.2, 7.5), look: wl(-0.8, 4.6, 0.5), fov: 58 };
 const BC = v3.add(BTN, v3.add(v3.mul(NW, 1.3), v3.add(v3.mul(TW, 0.55), [0, 0.18, 0])));
 const BTNC = { pos: BC, look: v3.add(BTN, v3.add(v3.mul(TW, -0.1), [0, -0.04, 0])), fov: 42 };
-const MED2 = { pos: [-0.95, 1.75, 3.3], look: [0.22, 1.36, -0.56], fov: 40 };
+const MED2 = { pos: [-0.95, 1.75, 3.3], look: [0.22, 1.56, -0.56], fov: 42 };
 const SPACEC = { pos: wl(-0.5, 1.6, 3.4), look: wl(-1.3, 1.25, 0.3), fov: 58 };
 const WIDE = { pos: wl(-0.85, 2.5, 7.2), look: wl(-1.15, 1.55, 0.3), fov: 54 };
 const CAFEM = { pos: wl(-1.2, 1.75, 5.6), look: wl(-1.25, 1.25, 0.6), fov: 62 };
@@ -349,14 +351,14 @@ const zoomed = (B, f) => ({ pos: B.pos, look: B.look, fov: f });
 const SHOTS = [
   { t0: 0, snap: true, target: (t) => zoomed(COLD, 64 - 2.5 * t) },
   { t0: 0.8, snap: true, target: (t) => mixCam(zoomed(COLD, 62), MED, smooth(0.8, 1.08, t)) },
-  { t0: 1.1, snap: true, target: (t) => zoomed(MED, 38 - 1.5 * (t - 1.1)) },
+  { t0: 1.1, snap: true, target: (t) => zoomed(MED, 40 - 1.5 * (t - 1.1)) },
   { t0: 2.1, w: 4.5, target: (t) => GROW },
   { t0: 3.6, snap: true, target: (t) => ({ pos: LOWUP.pos, look: v3.add(LOWUP.look, [0, 0.8 * (t - 3.6), 0]), fov: LOWUP.fov }) },
   { t0: 5.8, snap: true, target: (t) => ({ pos: WORM.pos, look: v3.add(WORM.look, [0, 4 * smooth(5.9, 6.8, t), 0]), fov: WORM.fov }) },
   { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 58 - 1.2 * (t - 6.8)) },
   { t0: 7.8, snap: true, target: (t) => zoomed(PLANEC, 64 - 1.5 * (t - 7.8)) },
   { t0: 9.4, snap: true, target: (t) => zoomed(BTNC, 40 - 2 * (t - 9.4)) },
-  { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 41 - 1 * (t - 10.8)) },
+  { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 43 - 1 * (t - 10.8)) },
   { t0: 12.0, snap: true, target: (t) => zoomed(SPACEC, 60 - 1.5 * (t - 12)) },
   { t0: T_REV, snap: true, target: (t) => mixCam(MED2, WIDE, 0.78 + 0.22 * easeOut((t - T_REV) / 0.3)) },
   { t0: 15.2, w: 3, target: (t) => CAFEM },
