@@ -24,3 +24,4 @@ REJECTED video #4: [겹침] 0~0.5초 힌트 간판 라벨 가림·7.0~7.5초 경
 SUBMIT video #5 manyak/posts/2026-11-22-hint-wall/reel.mp4
 APPROVED video #5: [통과] 크롭 경계 잘림·간판 라벨 가림·경비원↔주인공 겹침 해소, hudCheck 실패 0
 READY manyak/posts/2026-11-22-hint-wall/reel.mp4
+SUBMIT post #1 manyak/team/2026-11-22/post.md
