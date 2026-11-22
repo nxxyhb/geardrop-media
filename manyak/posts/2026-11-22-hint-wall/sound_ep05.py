@@ -104,6 +104,7 @@ def gate(x, a, b, f=0.08):
     i0, i1 = int(a*SR), int(b*SR); k = int(f*SR)
     x[i0-k:i0] *= np.linspace(1, 0, k); x[i0:i1] = 0
 gate(bgm, 0.8, 1.1, 0.04)
+gate(bgm, 12.5, 13.4, 0.12)   # 반전 직전 정적: 피치카토 꼬리까지 끊어 또렷하게
 
 SEG = json.loads(sys.argv[1])
 vo = np.zeros(N, np.float32); duck = np.ones(N, np.float32)

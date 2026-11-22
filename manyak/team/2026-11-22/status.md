@@ -14,3 +14,4 @@ SUBMIT concept #5 manyak/team/2026-11-22/concept.md
 APPROVED concept #5: [통과] 대본 71자·시각 정합, 카운터·폭 검산 일치, 컷 간격 1.0초 이상, 캡션 스포일 없음, 공유 대상 일치
 CONCEPT_DONE
 SUBMIT video #1 manyak/posts/2026-11-22-hint-wall/reel.mp4
+REJECTED video #1: [정렬] 직원·경비원·주인공 가장자리 잘림, [겹침] 13.4초 전환 제목·배지↔간판, 11~12초 머리↔칩

@@ -1,0 +1,1 @@
+(()=>{const c=CUR_CAM;const f=v3.norm(v3.sub(c.look,c.pos));const r=v3.norm([-f[2],0,f[0]]);const R=0.5;const o={};for(const [k,H] of [['hero',__head],['g',window.__gh||[GUARD[0],1.6,GUARD[2]]],['s',window.__sh||[STAFF[0],1.6,STAFF[2]]]]){o[k]=[proj(v3.add(H,v3.mul(r,-R)))[0],proj(v3.add(H,v3.mul(r,R)))[0],proj(v3.add(H,[0,R,0]))[1],proj(H)[1]]}return o})()
