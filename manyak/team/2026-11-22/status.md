@@ -20,3 +20,4 @@ REJECTED video #2: [정렬] 6.8~7.8초 경비원 머리·모자 왼쪽 크롭 �
 SUBMIT video #3 manyak/posts/2026-11-22-hint-wall/reel.mp4
 REJECTED video #3: [정렬] 12.1~13.3초 우주 컷 얼굴 오른쪽 크롭 경계 잘림, 힌트 간판 1~11.5초 오른쪽 경계 잘림
 SUBMIT video #4 manyak/posts/2026-11-22-hint-wall/reel.mp4
+REJECTED video #4: [겹침] 0~0.5초 힌트 간판 라벨 가림·7.0~7.5초 경비원 팔↔주인공 뺨 겹침
