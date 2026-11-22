@@ -506,7 +506,7 @@ const WALLM = basis(F0, [0, 1, 0], NW, 1); // 담장 로컬 행렬
 const HP = wl(-0.78, 0, 0.72);              // 주인공 발 위치
 const BTN = wl(-0.12, 1.22, 0);             // 버튼 받침 중심(벽면)
 const CBTN = wl(-0.1, 1.72, 0);             // 카페 벽 힌트 버튼(화면 오른쪽 크롭 안)
-const GUARD = [-0.9, 0, 1.0];
+const GUARD = [-1.35, 0, 0.55]; // video #5: 주인공과 간격(왼쪽으로 0.35)
 const STAFF = wl(-1.7, 0, 1.2);
 const HERO_YAW = -0.3;
 const heroYaw = (t) => t < 1.1 ? -0.8 : (t >= 12.0 && t < T_REV ? -0.55 : HERO_YAW);
@@ -705,14 +705,15 @@ function drawHero(t) {
   // 오른팔(+x, 버튼 쪽)
   if (mode === 'press' || mode === 'release') {
     const P = btnFace(BTN, t);
-    let hand = v3.add(P, v3.mul(NW, 0.05));
+    // video #5: 손바닥을 버튼 아래쪽 가장자리에 대고 눌러 라벨 '힌트'가 가려지지 않게
+    let hand = v3.add(v3.add(P, v3.mul(NW, 0.05)), v3.add(v3.mul(TW, -0.04), [0, -0.26, 0]));
     if (t >= 10.8 && t < 11.0) hand = v3.add(hand, v3.mul(NW, 0.3 * (1 - smooth(10.8, 10.98, t)) + 0.04 * Math.sin(t * 50))); // 쭈뼛쭈뼛
     if (mode === 'release') hand = v3.add(hand, v3.add(v3.mul(NW, 0.2), [0, -0.12, 0]));
     if (t >= 1.9 && t < 1.96) hand = v3.lerp(BW(0.44, 0.56, 0.05), hand, smooth(1.9, 1.96, t));
     const sh = SH(1);
     arm2(sh, v3.add(hand, v3.mul(NW, 0.08)), [0, -1, 0.3], shirt);
     // 손바닥: 버튼 면에 납작하게
-    D(m.sphere, M4.mul(basis(hand, [0, 1, 0], NW, 1), M4.S(0.2, 0.23, 0.09)), skin, { spec: 0.3 });
+    D(m.sphere, M4.mul(basis(hand, [0, 1, 0], NW, 1), M4.S(0.17, 0.19, 0.08)), skin, { spec: 0.3 });
   } else {
     let R2;
     if (mode === 'hips') R2 = BW(0.36, 0.7, 0.06);
@@ -732,10 +733,14 @@ function drawGuard(t) {
   window.__gh = M4.apply(Hd, [0, 0, 0]);
   D(m.box, M4.chain(base, M4.T(0.18, 1.1, 0.27), M4.S(0.12, 0.12, 0.02)), '#ffd23f', { spec: 0.8 }); // 배지
   // 쌍안경(눈앞)
-  const bin = (s) => M4.apply(Hd, [0.15 * s, -0.08, 0.55]);
-  for (const s of [-1, 1]) { const b = bin(s); D(m.cyl, M4.chain(Hd, M4.T(0.15 * s, -0.08, 0.6), M4.RX(Math.PI / 2), M4.S(0.17, 0.3, 0.17)), '#1c1c22', { spec: 0.7 }); }
+  // video #5: 놀라서 쌍안경을 배 높이로 내림(6.95~7.15초) → 얼굴이 보이고 팔·쌍안경이 주인공 얼굴 쪽으로 가지 않음
+  const low = smooth(6.95, 7.15, t);
+  const binP = (s) => v3.lerp(M4.apply(Hd, [0.15 * s, -0.08, 0.6]), M4.apply(base, [0.15 * s, 0.95, 0.3]), low);
+  for (const s of [-1, 1]) { const q = binP(s);
+    if (low < 0.5) D(m.cyl, M4.chain(Hd, M4.T(0.15 * s, lerp(-0.08, -0.5, low), 0.6), M4.RX(Math.PI / 2), M4.S(0.17, 0.3, 0.17)), '#1c1c22', { spec: 0.7 });
+    else D(m.cyl, M4.chain(M4.T(q[0], q[1], q[2]), M4.RY(0.55), M4.RX(Math.PI / 2), M4.S(0.17, 0.3, 0.17)), '#1c1c22', { spec: 0.7 }); }
   // 팔: 양손으로 쌍안경만 잡음
-  for (const s of [-1, 1]) { const sh = M4.apply(base, [0.3 * s, 1.02, 0]); const h = M4.apply(Hd, [0.27 * s, -0.16, 0.6]); arm2(sh, h, M4.apply(M4.mul(base, M4.I()), [0.6 * s, -0.2, 0]).map((x, k) => x - M4.apply(base, [0, 0, 0])[k]), '#3550a0'); sph(h, 0.09, '#f3cdb8'); }
+  for (const s of [-1, 1]) { const sh = M4.apply(base, [0.3 * s, 1.02, 0]); const h = v3.add(binP(1.8 * s), [0, -0.08, 0]); arm2(sh, h, M4.apply(M4.mul(base, M4.I()), [0.6 * s, -0.2, 0]).map((x, k) => x - M4.apply(base, [0, 0, 0])[k]), '#3550a0'); sph(h, 0.09, '#f3cdb8'); }
   // 모자: 7.2초에 뒤로 벗겨짐
   const fly = smooth(7.2, 7.75, t);
   const capL = M4.chain(Hd, M4.T(0, 0.36 + fly * 0.35, -0.05), M4.RX(-fly * 1.6));
@@ -784,23 +789,26 @@ const CAFEM = { pos: wl(-1.2, 1.75, 5.6), look: wl(-1.25, 1.25, 0.6), fov: 62 };
 const ENDC = { pos: wl(-0.85, 2.6, 7.8), look: wl(-1.15, 1.55, 0.3), fov: 54 };
 // video #4: 카메라 측면 이동·팬·화각 보정(search.js 로 머리·힌트 간판 크롭 안전 x 50~475 탐색)
 function adj(B, qx, px, py, df) { const f = v3.norm(v3.sub(B.look, B.pos)); const r = v3.norm([-f[2], 0, f[0]]); return { pos: v3.add(B.pos, v3.mul(r, qx)), look: v3.add(B.look, v3.add(v3.mul(r, px), [0, py, 0])), fov: B.fov + df }; }
-Object.assign(COLD, adj(COLD, -0.4, 0, 0, 0));
+// video #5: COLD·LOWUP 카메라를 오른쪽·뒤로 옮겨 주인공이 힌트 간판 라벨을 가리지 않게(간판은 주인공 오른쪽 옆 빈 벽에)
+Object.assign(COLD, { pos: wl(-0.55, 0.9, 4.4), look: wl(-0.58, 2.15, 0), fov: 56 });
 Object.assign(MED, adj(MED, -0.4, 0.2, 0, 12));
 Object.assign(MED2, adj(MED2, -0.8, 0.2, 0, 12));
 Object.assign(SPACEC, adj(SPACEC, 0, 0.6, 0.1, 12));
 Object.assign(GUARDC, adj(GUARDC, -0.8, 0.2, -0.3, 8));
-Object.assign(LOWUP, adj(LOWUP, -0.8, 0.2, 0, 0));
+Object.assign(GUARDC, adj(GUARDC, 0, -0.25, 0, 0)); // video #5: 경비원을 왼쪽으로 옮긴 만큼 팬
+Object.assign(GROW, { pos: wl(-1.0, 1.2, 6.6), look: wl(-0.3, 3.2, 0.3), fov: 54 }); // video #5: 주인공 머리가 간판 라벨을 가리지 않게
+Object.assign(LOWUP, { pos: wl(-0.5, 0.8, 4.2), look: wl(-0.6, 2.05, 0), fov: 58 });
 const BUMP = -0.08;
 const mixCam = (A, B, u) => ({ pos: v3.lerp(A.pos, B.pos, u), look: v3.lerp(A.look, B.look, u), fov: lerp(A.fov, B.fov, u) });
 const zoomed = (B, f) => ({ pos: B.pos, look: B.look, fov: f });
 const SHOTS = [
-  { t0: 0, snap: true, target: (t) => zoomed(COLD, 64 - 2.5 * t) },
-  { t0: 0.8, snap: true, target: (t) => { const u = smooth(0.8, 1.08, t); const C = mixCam(zoomed(COLD, 62), MED, u); return adj(C, 0, BUMP * Math.sin(Math.PI * u), 0, 0); } },
+  { t0: 0, snap: true, target: (t) => zoomed(COLD, COLD.fov - 2.5 * t) },
+  { t0: 0.8, snap: true, target: (t) => { const u = smooth(0.8, 1.08, t); const C = mixCam(zoomed(COLD, COLD.fov - 2), MED, u); return adj(C, 0, BUMP * Math.sin(Math.PI * u), 0, 0); } },
   { t0: 1.1, snap: true, target: (t) => zoomed(MED, 52 - 1.5 * (t - 1.1)) },
   { t0: 2.1, w: 4.5, target: (t) => GROW },
   { t0: 3.6, snap: true, target: (t) => ({ pos: LOWUP.pos, look: v3.add(LOWUP.look, [0, 0.8 * (t - 3.6), 0]), fov: LOWUP.fov }) },
   { t0: 5.8, snap: true, target: (t) => ({ pos: WORM.pos, look: v3.add(WORM.look, [0, 4 * smooth(5.9, 6.8, t), 0]), fov: WORM.fov }) },
-  { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 66 - 1.2 * (t - 6.8)) },
+  { t0: 6.8, snap: true, target: (t) => zoomed(GUARDC, 72 - 1.2 * (t - 6.8)) },
   { t0: 7.8, snap: true, target: (t) => zoomed(PLANEC, 64 - 1.5 * (t - 7.8)) },
   { t0: 9.4, snap: true, target: (t) => zoomed(BTNC, 40 - 2 * (t - 9.4)) },
   { t0: 10.8, snap: true, target: (t) => zoomed(MED2, 55 - 1 * (t - 10.8)) },
