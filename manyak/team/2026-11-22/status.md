@@ -13,3 +13,4 @@ REJECTED concept #4: [타이밍] 6.8~7.4초 과밀·카운터 점프 모순·[AI
 SUBMIT concept #5 manyak/team/2026-11-22/concept.md
 APPROVED concept #5: [통과] 대본 71자·시각 정합, 카운터·폭 검산 일치, 컷 간격 1.0초 이상, 캡션 스포일 없음, 공유 대상 일치
 CONCEPT_DONE
+SUBMIT video #1 manyak/posts/2026-11-22-hint-wall/reel.mp4
