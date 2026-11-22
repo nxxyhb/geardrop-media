@@ -11,3 +11,5 @@ REJECTED concept #3: [타이밍] 5.8~6.1초 사건 과밀·6.1~12초 몽타주 �
 SUBMIT concept #4 manyak/team/2026-11-22/concept.md
 REJECTED concept #4: [타이밍] 6.8~7.4초 과밀·카운터 점프 모순·[AI티] 대본3 시각·[겹침] 모니터/팝2
 SUBMIT concept #5 manyak/team/2026-11-22/concept.md
+APPROVED concept #5: [통과] 대본 71자·시각 정합, 카운터·폭 검산 일치, 컷 간격 1.0초 이상, 캡션 스포일 없음, 공유 대상 일치
+CONCEPT_DONE
