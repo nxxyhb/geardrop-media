@@ -16,3 +16,5 @@ CONCEPT_DONE
 SUBMIT video #1 manyak/posts/2026-11-22-hint-wall/reel.mp4
 REJECTED video #1: [정렬] 직원·경비원·주인공 가장자리 잘림, [겹침] 13.4초 전환 제목·배지↔간판, 11~12초 머리↔칩
 SUBMIT video #2 manyak/posts/2026-11-22-hint-wall/reel.mp4
+REJECTED video #2: [정렬] 6.8~7.8초 경비원 머리·모자 왼쪽 크롭 경계 잘림, 11.5초 칩이 주인공 머리 윗부분에 붙음
+SUBMIT video #3 manyak/posts/2026-11-22-hint-wall/reel.mp4
