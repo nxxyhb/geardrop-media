@@ -26,3 +26,4 @@ APPROVED video #5: [통과] 크롭 경계 잘림·간판 라벨 가림·경비�
 READY manyak/posts/2026-11-22-hint-wall/reel.mp4
 SUBMIT post #1 manyak/team/2026-11-22/post.md
 SCHEDULED https://app.metricool.com/planner/calendar?blogId=8061293&openWithPostUuid=4252703927172220486
+APPROVED post #1: [통과] 캡션·EP05 번호·영상 경로·예약 일시 적합
